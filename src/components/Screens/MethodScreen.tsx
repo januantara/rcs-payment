@@ -66,7 +66,7 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
           onClick={handleToggleVa}
           className={`rounded-xl border transition-all p-3.5 cursor-pointer ${
             selectedChannel === 'va'
-              ? 'border-slate-300 bg-white shadow-2xs'
+              ? 'border-[#F15A24] bg-white shadow-2xs'
               : 'border-slate-200 hover:border-slate-300 bg-white'
           }`}
         >
@@ -101,13 +101,22 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
                       onSelectChannel('va');
                       onSelectBank(bank.id);
                     }}
-                    className={`flex flex-col items-center justify-center py-2 px-1 sm:px-2 rounded-lg border-2 transition-all cursor-pointer bg-white ${
+                    className={`flex items-center justify-center h-12 sm:h-13 px-2 sm:px-3 py-1.5 rounded-xl border-2 transition-all cursor-pointer bg-white overflow-hidden ${
                       isSelected
-                        ? 'border-[#F15A24] shadow-2xs'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-[#F15A24] bg-orange-50/20 shadow-2xs'
+                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                     }`}
                   >
-                    <BankBadge bankId={bank.id} className="h-5" />
+                    <BankBadge
+                      bankId={bank.id}
+                      className={
+                        bank.id === 'bca'
+                          ? 'max-h-7 sm:max-h-8 max-w-[85px] sm:max-w-[100px] w-auto h-auto'
+                          : bank.id === 'mandiri'
+                          ? 'max-h-7 sm:max-h-8 max-w-[90px] sm:max-w-[105px] w-auto h-auto'
+                          : 'max-h-6 sm:max-h-7 max-w-[75px] sm:max-w-[90px] w-auto h-auto'
+                      }
+                    />
                   </button>
                 );
               })}
@@ -121,9 +130,9 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
             onSelectChannel('qris');
             setIsVaExpanded(false);
           }}
-          className={`rounded-xl border-2 transition-all p-3.5 cursor-pointer ${
+          className={`rounded-xl border transition-all p-3.5 cursor-pointer ${
             selectedChannel === 'qris'
-              ? 'border-[#F15A24] bg-white shadow-xs'
+              ? 'border-[#F15A24] bg-white shadow-2xs'
               : 'border-slate-200 hover:border-slate-300 bg-white'
           }`}
         >

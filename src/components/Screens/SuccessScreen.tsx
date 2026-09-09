@@ -17,6 +17,7 @@ import { DebtorInfo, BankId, PaymentChannel, BillBreakdown } from '../../types';
 import { generatePaymentReceiptPdf } from '../../utils/pdfGenerator';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { BillingStatementModal } from '../Modals/BillingStatementModal';
+import { BankBadge, bniLogo } from '../BankLogos';
 
 interface SuccessScreenProps {
   channel?: PaymentChannel;
@@ -122,7 +123,7 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
           {/* Document Header Row */}
           <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="text-xl font-black text-[#003853] tracking-tight">BNI</div>
+              <img src={bniLogo} alt="BNI" className="h-6 sm:h-7 w-auto object-contain" />
               <div>
                 <div className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wide">
                   Lembar Tagihan & Pelunasan Resmi
@@ -208,7 +209,10 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
             </div>
             <div>
               <span className="text-slate-400 block">Kanal Pembayaran</span>
-              <span className="font-medium text-slate-800">{paymentMethodLabel}</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {channel === 'va' && <BankBadge bankId={bankId} className="h-4 w-auto object-contain inline-block" />}
+                <span className="font-medium text-slate-800">{paymentMethodLabel}</span>
+              </div>
             </div>
             <div className="text-right">
               <span className="text-slate-400 block">Akun / Rekening Tujuan</span>

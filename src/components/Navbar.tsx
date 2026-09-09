@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, Globe } from 'lucide-react';
 import { Language } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
+import bniLogo from '../assets/icons/bni.png';
 
 const FlagID: React.FC = () => (
   <span className="w-4 h-3 rounded-[2px] overflow-hidden flex flex-col border border-slate-300 shadow-2xs shrink-0 inline-block">
@@ -67,15 +68,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none group"
           title={t.navbar.backToHome}
         >
-          {/* Logo BNI 46 Box */}
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#F15A24] text-white shadow-2xs group-hover:scale-105 transition-transform">
-            <span className="text-xs font-black tracking-tight">46</span>
-          </div>
-
-          {/* Logo Text BNI */}
-          <span className="font-black text-xl sm:text-2xl text-[#005E7A] tracking-tight group-hover:text-[#F15A24] transition-colors">
-            BNI
-          </span>
+          {/* Logo BNI from Assets */}
+          <img
+            src={bniLogo}
+            alt="BNI"
+            className="h-7 sm:h-8 w-auto object-contain group-hover:scale-105 transition-transform"
+          />
 
           {/* Divider */}
           <div className="h-4 w-px bg-slate-200 mx-0.5" />

@@ -3,6 +3,7 @@ import { X, Download, CheckCircle2, ShieldCheck, QrCode, Building2, FileText, Lo
 import { DebtorInfo, BillBreakdown, PaymentChannel, BankId } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { generatePaymentReceiptPdf } from '../../utils/pdfGenerator';
+import bniLogo from '../../assets/icons/bni.png';
 
 interface BillingStatementModalProps {
   isOpen: boolean;
@@ -119,7 +120,7 @@ export const BillingStatementModal: React.FC<BillingStatementModalProps> = ({
               {/* Document Letterhead */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-200">
                 <div className="flex items-start gap-3">
-                  <div className="text-2xl font-black tracking-tight text-[#003853]">BNI</div>
+                  <img src={bniLogo} alt="BNI" className="h-8 w-auto object-contain mt-0.5" />
                   <div>
                     <h3 className="font-bold text-xs text-slate-900 leading-tight">
                       PT BANK NEGARA INDONESIA (PERSERO) TBK
