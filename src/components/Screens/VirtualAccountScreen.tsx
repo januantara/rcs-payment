@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import {
   Copy,
   Check,
@@ -55,133 +56,67 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
     setActiveSection((prev) => (prev === key ? null : key));
   };
 
+  const [copiedBankCode, setCopiedBankCode] = useState(false);
+  const [copiedAmount, setCopiedAmount] = useState(false);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(vaNumber.replace(/\s+/g, ''));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadQr = () => {
-    setIsDownloading(true);
-    // Create an offscreen canvas to generate a downloadable QR image
-    setTimeout(() => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 400;
-      canvas.height = 460;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, 400, 460);
-
-        // Header
-        ctx.fillStyle = '#003853';
-        ctx.font = 'bold 18px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('QRIS STANDAR PEMBAYARAN NASIONAL', 200, 36);
-
-        ctx.fillStyle = '#64748b';
-        ctx.font = '12px monospace';
-        ctx.fillText('BNI REC - ANDI PRATAMA | NMID: ID1020023819472', 200, 56);
-
-        // Amount Box
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(40, 70, 320, 50);
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.strokeRect(40, 70, 320, 50);
-
-        ctx.fillStyle = '#003853';
-        ctx.font = 'bold 20px sans-serif';
-        ctx.fillText(formatMoney(amount), 200, 102);
-
-        // QR Code visual representation (mock blocks on canvas)
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(90, 140, 220, 220);
-
-        // QR cutouts
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(100, 150, 200, 200);
-
-        // Corners
-        const drawMarker = (x: number, y: number, color: string) => {
-          ctx.fillStyle = '#0f172a';
-          ctx.fillRect(x, y, 46, 46);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 8, y + 8, 30, 30);
-          ctx.fillStyle = color;
-          ctx.fillRect(x + 14, y + 14, 18, 18);
-        };
-        drawMarker(110, 160, '#F15A24');
-        drawMarker(244, 160, '#005E7A');
-        drawMarker(110, 294, '#0f172a');
-
-        // Pattern filler
-        ctx.fillStyle = '#1e293b';
-        for (let i = 0; i < 6; i++) {
-          for (let j = 0; j < 6; j++) {
-            if ((i + j) % 2 === 0) {
-              ctx.fillRect(175 + i * 10, 210 + j * 10, 8, 8);
-            }
-          }
-        }
-
-        // Expiry notice
-        ctx.fillStyle = '#64748b';
-        ctx.font = '11px sans-serif';
-        ctx.fillText(`Berlaku s/d: ${formatDateLocalized(expiryDateTime)}`, 200, 390);
-        ctx.fillText(`Ref: ${vaNumber}`, 200, 410);
-
-        // Trigger download
-        const url = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `QRIS-BNI-${vaNumber}.png`;
-        link.href = url;
-        link.click();
-      }
-      setIsDownloading(false);
-      setDownloaded(true);
-      setTimeout(() => setDownloaded(false), 3000);
-    }, 400);
+  const handleCopyBankCode = () => {
+    navigator.clipboard.writeText('009');
+    setCopiedBankCode(true);
+    setTimeout(() => setCopiedBankCode(false), 2000);
   };
 
-  // Dedicated QR SVG component used across QRIS and VA
-  const renderQrSvg = (sizeClass: string) => (
-    <svg viewBox="0 0 100 100" className={`${sizeClass} fill-slate-900 select-none`}>
-      <rect x="0" y="0" width="28" height="28" rx="3" fill="#0f172a" />
-      <rect x="5" y="5" width="18" height="18" rx="2" fill="white" />
-      <rect x="9" y="9" width="10" height="10" rx="1" fill="#F15A24" />
+  const handleCopyAmount = () => {
+    navigator.clipboard.writeText(amount.toString());
+    setCopiedAmount(true);
+    setTimeout(() => setCopiedAmount(false), 2000);
+  };
 
-      <rect x="72" y="0" width="28" height="28" rx="3" fill="#0f172a" />
-      <rect x="77" y="5" width="18" height="18" rx="2" fill="white" />
-      <rect x="81" y="9" width="10" height="10" rx="1" fill="#005E7A" />
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
-      <rect x="0" y="72" width="28" height="28" rx="3" fill="#0f172a" />
-      <rect x="5" y="77" width="18" height="18" rx="2" fill="white" />
-      <rect x="9" y="81" width="10" height="10" rx="1" fill="#0f172a" />
+  useEffect(() => {
+    // Generate real, high-resolution QR code
+    const rawVa = vaNumber.replace(/\s+/g, '');
+    const qrisPayload = `00020101021226600014ID.LINKAJA.WWW011893600998${rawVa}0215ID10200238194720303UME51440014ID.CO.BNI.WWW0215${rawVa}520458125303360540${amount}.005802ID5919BNI REC - ANDI PRATAMA6007JAKARTA62190115${rawVa}6304`;
+    QRCode.toDataURL(qrisPayload, {
+      width: 320,
+      margin: 1,
+      color: {
+        dark: '#002840',
+        light: '#ffffff',
+      },
+      errorCorrectionLevel: 'M',
+    })
+      .then((url) => setQrCodeUrl(url))
+      .catch((err) => console.error('Failed to generate QR:', err));
+  }, [vaNumber, amount]);
 
-      <rect x="36" y="6" width="6" height="6" />
-      <rect x="48" y="10" width="8" height="6" />
-      <rect x="60" y="6" width="6" height="6" />
-      <rect x="36" y="24" width="6" height="6" />
-      <rect x="48" y="22" width="6" height="6" />
+  const handleDownloadQr = () => {
+    if (!qrCodeUrl) return;
+    setIsDownloading(true);
+    const link = document.createElement('a');
+    link.download = `QRIS-BNI-REC-ANDI-PRATAMA.png`;
+    link.href = qrCodeUrl;
+    link.click();
+    setIsDownloading(false);
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 3000);
+  };
 
-      <rect x="12" y="36" width="8" height="6" />
-      <rect x="24" y="42" width="6" height="6" />
-      <rect x="36" y="36" width="6" height="8" />
-      <rect x="46" y="46" width="8" height="8" fill="#F15A24" />
-      <rect x="58" y="36" width="6" height="8" />
-      <rect x="70" y="42" width="6" height="6" />
-      <rect x="84" y="36" width="8" height="6" />
-
-      <rect x="36" y="64" width="6" height="6" />
-      <rect x="48" y="58" width="6" height="6" />
-      <rect x="60" y="64" width="6" height="6" />
-
-      <rect x="36" y="76" width="8" height="6" />
-      <rect x="50" y="76" width="6" height="6" />
-      <rect x="62" y="72" width="6" height="8" />
-      <rect x="76" y="76" width="6" height="6" />
-      <rect x="88" y="76" width="6" height="6" />
-    </svg>
+  // Dedicated QR component used across QRIS and VA
+  const renderQr = (sizeClass: string) => (
+    qrCodeUrl ? (
+      <img src={qrCodeUrl} alt="Kode QRIS" className={`${sizeClass} object-contain select-none`} />
+    ) : (
+      <div className={`${sizeClass} flex items-center justify-center text-slate-400 text-xs`}>
+        Memuat QR...
+      </div>
+    )
   );
 
   return (
@@ -204,57 +139,62 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
         </p>
       </div>
 
-      {/* Main Card */}
+      {/* Main Card: QRIS or VA/Transfer */}
       {channel === 'qris' ? (
-        /* Dedicated Main Card for QRIS Channel */
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-4">
-          <div className="flex flex-col items-center text-center">
-            {/* QRIS & Merchant Header */}
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-md bg-rose-600 text-white text-xs font-black tracking-wider uppercase shadow-xs">
-                {t.va.qrisBadge}
+        <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            {/* Left: Merchant Info, Total, Expiry */}
+            <div className="space-y-4 flex-1">
+              {/* QRIS Emblem & Merchant */}
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-[#ED1C24] text-white text-[10px] font-black tracking-wider uppercase shadow-2xs">
+                    {t.va.qrisBadge}
+                  </span>
+                  <span className="text-xs font-bold text-slate-700">
+                    {t.va.qrisStandard}
+                  </span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-black text-[#003853] tracking-tight">
+                  BNI REC - ANDI PRATAMA
+                </h2>
+              </div>
+
+              {/* Total Payment */}
+              <div>
+                <div className="text-[11px] sm:text-xs text-slate-500 font-medium">{t.va.totalPayment}</div>
+                <div className="text-2xl sm:text-3xl font-black text-[#003853] mt-0.5 tracking-tight">
+                  {formatMoney(amount)}
+                </div>
+              </div>
+
+              {/* Expiry Date */}
+              <div className="pt-1">
+                <div className="inline-flex items-center gap-1.5 text-xs text-slate-600 bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 rounded-lg">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>
+                    {t.va.validUntil}: <strong className="text-slate-900 font-bold">{formatDateLocalized(expiryDateTime)}</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Real QR Code with scan prompt and download button */}
+            <div className="flex flex-col items-center justify-center p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/90 self-center sm:self-auto shrink-0 shadow-2xs space-y-2.5">
+              <span className="text-xs font-bold text-slate-700">
+                {t.va.scanToPay}
               </span>
-              <span className="text-xs font-bold text-slate-800">
-                {t.va.qrisStandard}
-              </span>
-            </div>
-
-            <div className="text-sm sm:text-base font-extrabold text-[#003853] mt-0.5">
-              BNI REC - ANDI PRATAMA
-            </div>
-            <div className="text-[11px] text-slate-500 font-mono tracking-wide">
-              NMID: ID1020023819472
-            </div>
-
-            {/* Total Pembayaran Banner */}
-            <div className="mt-3 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 w-full max-w-sm">
-              <div className="text-[11px] text-slate-500 font-medium">{t.va.totalPayment}</div>
-              <div className="text-2xl sm:text-3xl font-black text-[#003853] tracking-tight mt-0.5">
-                {formatMoney(amount)}
+              <div className="w-40 h-40 sm:w-44 sm:h-44 p-1.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-center">
+                {renderQr('w-full h-full')}
               </div>
-            </div>
-
-            {/* QR Code Container with Frame */}
-            <div className="mt-4 p-4 bg-white rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col items-center relative group">
-              <div className="w-52 h-52 sm:w-60 sm:h-60 bg-white flex items-center justify-center p-2">
-                {renderQrSvg('w-full h-full')}
-              </div>
-              <div className="mt-2 text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                <QrCode className="w-4 h-4 text-[#005E7A]" />
-                <span>{t.va.scanQrDesc}</span>
-              </div>
-            </div>
-
-            {/* QR Actions: Unduh QR Code & Salin Kode Ref */}
-            <div className="mt-3.5 flex items-center justify-center gap-2 flex-wrap w-full max-w-sm">
               <button
                 type="button"
                 onClick={handleDownloadQr}
-                disabled={isDownloading}
-                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                disabled={isDownloading || !qrCodeUrl}
+                className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
                   downloaded
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
                 }`}
               >
                 {downloaded ? (
@@ -264,70 +204,155 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                 )}
                 <span>{downloaded ? t.va.downloadedQr : isDownloading ? t.va.downloadingQr : t.va.downloadQr}</span>
               </button>
+            </div>
+          </div>
+        </div>
+      ) : channel === 'transfer' ? (
+        /* Dedicated Main Card for Bank Transfer (No QR, Destination Bank BNI, Code 009, Beneficiary) */
+        <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs space-y-4">
+          {/* Top: Destination Bank & Verified Official Badge */}
+          <div className="flex items-center justify-between flex-wrap gap-3 pb-3.5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <BankBadge bankId="bni" className="h-7" />
+              <div>
+                <div className="text-xs sm:text-sm font-bold text-slate-800">
+                  PT Bank Negara Indonesia (Persero) Tbk
+                </div>
+                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                  {t.va.destBankTransferDesc}
+                </div>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-bold border border-emerald-200/80 shadow-2xs">
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{t.va.officialTransferBadge}</span>
+            </span>
+          </div>
 
+          {/* Account Number Box (Primary Focus for Transfer) */}
+          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/90 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600">
+                {t.va.targetAcc}
+              </span>
+              <span className="text-[10px] text-slate-500 font-semibold bg-slate-200/60 px-2 py-0.5 rounded">
+                BNI Escrow / Collection
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 flex-wrap pt-0.5">
+              <span className="font-mono text-2xl sm:text-3xl font-black text-[#003853] tracking-wider select-all">
+                {vaNumber}
+              </span>
               <button
                 type="button"
                 onClick={handleCopy}
-                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
                   copied
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                    : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50/60'
                 }`}
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-600" />}
-                <span>{copied ? t.va.copied : t.va.copy} Ref</span>
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? t.va.copied : t.va.copy}</span>
               </button>
             </div>
+          </div>
 
-            {/* Expiry and actions */}
-            <div className="mt-3.5 flex flex-col items-center gap-1 text-center">
-              <div className="inline-flex items-center gap-1.5 text-xs text-slate-600 bg-amber-50 border border-amber-200/80 px-3 py-1 rounded-full">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                <span>
-                  {t.va.validUntil}: <strong className="text-slate-900 font-bold">{formatDateLocalized(expiryDateTime)}</strong>
+          {/* Beneficiary Name & Bank Code Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Box: Nama Penerima (Beneficiary Name) */}
+            <div className="p-3.5 rounded-xl bg-slate-50/50 border border-slate-200/80 space-y-1">
+              <div className="text-[11px] text-slate-500 font-medium">
+                {t.va.beneficiaryLabel}
+              </div>
+              <div className="text-sm sm:text-base font-black text-[#003853] tracking-tight">
+                BNI REC - ANDI PRATAMA
+              </div>
+              <p className="text-[10px] text-slate-400">
+                {t.va.beneficiaryNotice}
+              </p>
+            </div>
+
+            {/* Box: Kode Bank (untuk transfer dari bank lain) */}
+            <div className="p-3.5 rounded-xl bg-slate-50/50 border border-slate-200/80 space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] text-slate-500 font-medium">
+                  {t.va.bankCodeLabel}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyBankCode}
+                  className="text-[11px] text-blue-600 hover:text-blue-700 font-bold cursor-pointer"
+                >
+                  {copiedBankCode ? t.va.copied : t.va.copy}
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-base font-black text-[#003853] bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  009
+                </span>
+                <span className="text-[10px] text-slate-500">
+                  {t.va.bankCodeDesc}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-1">
-                {t.va.refCode}: <span className="font-mono text-slate-600 font-semibold">{vaNumber}</span>
+            </div>
+          </div>
+
+          {/* Total Amount & Expiry Row */}
+          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="text-xs text-slate-500 font-medium">{t.va.totalPayment}</div>
+              <div className="flex items-center gap-2.5 mt-0.5">
+                <span className="text-xl sm:text-2xl font-black text-[#003853]">
+                  {formatMoney(amount)}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyAmount}
+                  className={`text-[11px] font-bold px-2.5 py-1 rounded-md border transition-all cursor-pointer ${
+                    copiedAmount
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {copiedAmount ? t.va.copied : t.va.copyAmount}
+                </button>
               </div>
             </div>
 
-            {/* Supported App Badges Bar */}
-            <div className="mt-4 pt-3 border-t border-slate-100 w-full">
-              <div className="text-[11px] font-medium text-slate-500 mb-2">
-                Dapat dipindai melalui aplikasi:
+            <div>
+              <div className="text-xs text-slate-500 font-medium">{t.va.validUntil}</div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800 bg-amber-50 border border-amber-200/80 px-3 py-1.5 rounded-lg mt-0.5">
+                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>{formatDateLocalized(expiryDateTime)}</span>
               </div>
-              <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                {['GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja', 'BCA Mobile', 'Livin\' Mandiri', 'BRImo', 'Wondr BNI'].map((app) => (
-                  <span
-                    key={app}
-                    className="px-2 py-0.5 bg-slate-100/90 text-slate-700 rounded-md text-[10px] font-semibold border border-slate-200/80"
-                  >
-                    {app}
-                  </span>
-                ))}
-              </div>
+            </div>
+          </div>
+
+          {/* Supported Interbank Transfer Methods Info Banner */}
+          <div className="p-3 rounded-lg bg-sky-50/80 border border-sky-200/80 flex items-start gap-2.5 text-xs text-sky-950">
+            <Landmark className="w-4 h-4 text-[#005E7A] shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-bold">{t.va.supportedTransferMethodsTitle} </span>
+              <span className="text-slate-700">
+                {t.va.supportedTransferMethodsDesc}
+              </span>
             </div>
           </div>
         </div>
       ) : (
-        /* Default Main Card for VA / Transfer Bank */
+        /* Default Main Card for Virtual Account */
         <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Left: Bank logo & Number & Total & Expiry */}
             <div className="space-y-3 flex-1">
               <div className="flex items-center gap-2">
                 <BankBadge bankId={bankId} className="h-6" />
-                {channel === 'transfer' && (
-                  <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                    {t.va.targetAcc}
-                  </span>
-                )}
               </div>
 
               <div>
                 <div className="text-[11px] sm:text-xs text-slate-500 font-medium mb-1">
-                  {channel === 'transfer' ? t.va.targetAcc : t.va.vaNumberLabel}
+                  {t.va.vaNumberLabel}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap pb-3 border-b border-slate-100">
                   <span className="font-mono text-xl sm:text-2xl font-black text-[#003853] tracking-wide select-all">
@@ -368,7 +393,7 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                 {t.va.scanToPay}
               </span>
               <div className="w-24 h-24 p-1 bg-white flex items-center justify-center">
-                {renderQrSvg('w-full h-full')}
+                {renderQr('w-full h-full')}
               </div>
               <span className="text-[9px] text-slate-400 mt-0.5">{t.va.optional}</span>
             </div>
@@ -550,7 +575,10 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                   <div className="px-3.5 pb-3 pt-1 border-t border-slate-100 bg-slate-50/40 text-xs text-slate-700 space-y-2">
                     <div className="p-2 rounded-lg bg-sky-50 border border-sky-200/70 text-[11px] text-sky-900 flex items-center justify-between flex-wrap gap-1">
                       <span>{t.va.destBankInfo}</span>
-                      <span>No. Rekening / VA: <strong className="font-mono text-[#005E7A]">{vaNumber}</strong></span>
+                      <span>
+                        {channel === 'transfer' ? t.va.targetAcc : 'No. Rekening / VA'}:{' '}
+                        <strong className="font-mono text-[#005E7A]">{vaNumber}</strong>
+                      </span>
                     </div>
                     {t.instructions.otherBanks.map((step, idx) => (
                       <div key={idx} className="flex items-start gap-2">

@@ -1,15 +1,12 @@
 import React from 'react';
 import {
   ChevronRight,
-  CreditCard,
   ShieldCheck,
   User,
   FileText,
   Home,
   MapPin,
   CalendarClock,
-  Scan,
-  Banknote,
   RefreshCcw,
   QrCode,
   Building2,
@@ -18,6 +15,7 @@ import {
   Zap,
   Check,
   Sparkles,
+  Landmark,
 } from 'lucide-react';
 import { DebtorInfo, BillBreakdown, PaymentChannel, Language } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -229,7 +227,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
               {/* Amount — large gradient focal point */}
               <div
-                className="text-2xl sm:text-3xl font-black tracking-tight leading-none mb-3"
+                className="text-2xl sm:text-3xl font-black tracking-tight leading-none"
                 style={{
                   background: 'linear-gradient(135deg, #002840 0%, #005E7A 55%, #007298 100%)',
                   WebkitBackgroundClip: 'text',
@@ -238,24 +236,32 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               >
                 {formatMoney(breakdown.total)}
               </div>
-
-              {/* Due date */}
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <CalendarClock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="text-slate-500">{t.landing.dueDate}</span>
-                <span className="font-bold text-slate-800">{localizedDebtor.dueDate}</span>
-              </div>
             </div>
 
-            {/* Footer CTA */}
-            <div className="mt-4 pt-3 border-t border-slate-100">
-              <button
-                onClick={onOpenDetailModal}
-                className="group/btn flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#007298] hover:text-[#F15A24] transition-colors cursor-pointer"
-              >
-                <span>{t.landing.viewDetails}</span>
-                <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
-              </button>
+            {/* Bottom Group: Due Date & Footer CTA */}
+            <div className="mt-5 sm:mt-6 space-y-3">
+              {/* Due date — 2 baris (rata kiri tanpa space kosong) */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                  <CalendarClock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>{t.landing.dueDate}</span>
+                </div>
+                <p className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                  {localizedDebtor.dueDate}
+                </p>
+              </div>
+
+              {/* Footer CTA */}
+              <div className="pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={onOpenDetailModal}
+                  className="group/btn flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#007298] hover:text-[#F15A24] transition-colors cursor-pointer"
+                >
+                  <span>{t.landing.viewDetails}</span>
+                  <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -275,7 +281,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
           {/* 1. Virtual Account */}
           <PaymentMethodCard
             onClick={() => onSelectChannel('va')}
-            icon={<CreditCard className="w-5 h-5" />}
+            icon={<Building2 className="w-5 h-5" />}
             name={t.landing.vaName}
             description={t.landing.vaDesc}
             badge={{
@@ -302,7 +308,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
           {/* 2. QRIS */}
           <PaymentMethodCard
             onClick={() => onSelectChannel('qris')}
-            icon={<Scan className="w-5 h-5" />}
+            icon={<QrCode className="w-5 h-5" />}
             name={t.landing.qrisName}
             description={t.landing.qrisDesc}
             supportingChips={
@@ -324,7 +330,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
           {/* 3. Transfer Antar Bank */}
           <PaymentMethodCard
             onClick={() => onSelectChannel('transfer')}
-            icon={<Banknote className="w-5 h-5" />}
+            icon={<Landmark className="w-5 h-5" />}
             name={t.landing.transferName}
             description={t.landing.transferDesc}
             supportingChips={

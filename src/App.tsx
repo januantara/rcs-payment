@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ScreenType, Language, NominalSelectionType, PaymentChannel, BankId } from './types';
 import { mockDebtor, mockBreakdown } from './data/mockData';
@@ -16,9 +16,30 @@ import { BillDetailModal } from './components/Modals/BillDetailModal';
 import { PaymentGuideModal } from './components/Modals/PaymentGuideModal';
 import { useLanguage } from './i18n/LanguageContext';
 
+// Helper to map pathname to ScreenType
+const pathToScreen = (pathname: string): ScreenType => {
+  const path = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  if (path === 'nominal') return 'nominal';
+  if (path === 'method') return 'method';
+  if (path === 'va') return 'va';
+  if (path === 'waiting') return 'waiting';
+  if (path === 'success') return 'success';
+  return 'landing';
+};
+
+// Helper to map ScreenType to URL path
+const screenToPath = (screen: ScreenType): string => {
+  return screen === 'landing' ? '/' : `/${screen}`;
+};
+
 export default function App() {
-  // Current active stage
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('landing');
+  // Current active stage synchronized with route
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
+    if (typeof window !== 'undefined') {
+      return pathToScreen(window.location.pathname);
+    }
+    return 'landing';
+  });
   const { language, setLanguage } = useLanguage();
 
   // Transaction state
@@ -40,11 +61,35 @@ export default function App() {
   const [debtor, setDebtor] = useState(mockDebtor);
   const [breakdown, setBreakdown] = useState(mockBreakdown);
 
-  // Handle stage change with scroll to top
-  const handleStageChange = (targetScreen: ScreenType) => {
+  // Handle stage change with browser history update
+  const handleStageChange = (targetScreen: ScreenType, replace = false) => {
     setCurrentScreen(targetScreen);
+    const targetPath = screenToPath(targetScreen);
+    if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
+      if (replace) {
+        window.history.replaceState({ screen: targetScreen }, '', targetPath);
+      } else {
+        window.history.pushState({ screen: targetScreen }, '', targetPath);
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Sync with browser back/forward buttons (popstate)
+  useEffect(() => {
+    // Replace initial state with current screen
+    const initialScreen = pathToScreen(window.location.pathname);
+    window.history.replaceState({ screen: initialScreen }, '', screenToPath(initialScreen));
+
+    const handlePopState = (event: PopStateEvent) => {
+      const screen = (event.state && event.state.screen) || pathToScreen(window.location.pathname);
+      setCurrentScreen(screen);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Handle nominal selection
   const handleSelectNominal = (type: NominalSelectionType, amount: number) => {
@@ -125,8 +170,8 @@ export default function App() {
               /* TAHAP 2 - 6: Payment Flow Screens with In-screen Stepper */
               <div className="max-w-2xl mx-auto">
                 <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-                  {/* In-screen Stepper */}
-                  <div className="bg-slate-50/60 border-b border-slate-100 px-4">
+                  {/* In-screen Stepper with subtle thin gray background */}
+                  <div className="bg-slate-100/70 border-b border-slate-200/80 px-4">
                     <Stepper
                       currentScreen={currentScreen}
                       channel={selectedChannel}
@@ -136,7 +181,7 @@ export default function App() {
 
                   {/* Active Stage Screen Content */}
                   <div className="p-4 sm:p-6">
-                    {/* TAHAP 2: Pilih Nominal (Step Pertama) */}
+                    {/* TAHAP 2: Pilih Nominal (Step Pertama - no in-app back button, uses browser navigation) */}
                     {currentScreen === 'nominal' && (
                       <NominalScreen
                         breakdown={breakdown}

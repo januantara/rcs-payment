@@ -78,166 +78,160 @@ export const NominalScreen: React.FC<NominalScreenProps> = ({
         <h1 className="text-lg sm:text-xl font-extrabold text-[#003853] tracking-tight">
           {t.nominal.title}
         </h1>
-        <p className="mt-0.5 text-xs text-slate-500 font-medium">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 font-normal">
           {t.nominal.subtitle}
         </p>
       </div>
 
-      {/* Rincian Tagihan Box */}
-      <div className="bg-slate-50/90 rounded-xl p-3.5 sm:p-4 border border-slate-200/80">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/70">
-          <span className="text-xs font-bold text-slate-800">
+      {/* Rincian Tagihan Card */}
+      <div className="bg-[#f0f8fc]/50 rounded-2xl p-4 sm:p-5 border border-sky-100/70">
+        <div className="flex items-center justify-between pb-3">
+          <span className="text-xs sm:text-sm font-bold text-[#002840]">
             {t.nominal.summaryTitle}
           </span>
           <button
+            type="button"
             onClick={onOpenDetailModal}
-            className="text-[11px] font-semibold text-[#005E7A] hover:text-[#F15A24] transition-colors cursor-pointer"
+            className="text-xs font-medium text-[#007298] hover:text-[#F15A24] transition-colors cursor-pointer"
           >
             {t.nominal.viewDetails}
           </button>
         </div>
 
-        <div className="space-y-1.5 text-xs">
+        <div className="space-y-2 text-xs sm:text-[13px]">
           <div className="flex justify-between text-slate-600">
-            <span>{t.billModal.principal}</span>
+            <span>{language === 'EN' ? 'Principal' : 'Pokok'}</span>
             <span className="font-semibold text-slate-800">{formatMoney(breakdown.pokok)}</span>
           </div>
           <div className="flex justify-between text-slate-600">
-            <span>{t.billModal.interest}</span>
+            <span>{language === 'EN' ? 'Interest' : 'Bunga'}</span>
             <span className="font-semibold text-slate-800">{formatMoney(breakdown.bunga)}</span>
           </div>
           <div className="flex justify-between text-slate-600">
-            <span>{t.billModal.penalty}</span>
+            <span>{language === 'EN' ? 'Penalty' : 'Denda'}</span>
             <span className="font-semibold text-slate-800">{formatMoney(breakdown.denda)}</span>
           </div>
-          <div className="flex justify-between items-center pt-2 border-t border-slate-200 font-bold">
-            <span className="text-slate-900 text-xs">{t.nominal.totalObligation}</span>
-            <span className="text-sm font-extrabold text-slate-900">
+          <div className="flex justify-between items-center pt-2 font-bold">
+            <span className="text-slate-800 text-xs sm:text-sm">{t.nominal.totalObligation}</span>
+            <span className="text-sm sm:text-base font-bold text-[#002840] tracking-tight">
               {formatMoney(breakdown.total)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Nominal Options Unified Radio Group matching design mockup */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs divide-y divide-slate-100">
-        {/* Option 1: Bayar Minimum (Tanpa denda) */}
+      {/* Radio Group Container (Matching Reference Image) */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 divide-y divide-slate-100 overflow-hidden shadow-2xs">
+        {/* Option 1: Bayar Minimum */}
         <div
           onClick={() => handleSelectOption('minimum')}
-          className={`flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 cursor-pointer transition-colors ${
+          className={`p-4 sm:p-4.5 flex items-center justify-between cursor-pointer transition-colors ${
             selectedType === 'minimum'
               ? 'bg-[#FFF6EF]'
-              : 'bg-white hover:bg-slate-50/70'
+              : 'hover:bg-slate-50/60'
           }`}
         >
           <div className="flex items-center gap-3">
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${
                 selectedType === 'minimum'
-                  ? 'bg-[#F15A24]'
+                  ? 'border-2 border-[#F15A24] bg-white'
                   : 'border-2 border-slate-300 bg-white'
               }`}
             >
               {selectedType === 'minimum' && (
-                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#F15A24]" />
               )}
             </div>
             <div>
-              <div className="font-bold text-xs sm:text-sm text-[#003853]">
+              <div className="font-bold text-xs sm:text-sm text-[#002840]">
                 {t.nominal.minPaymentTitle}
               </div>
-              <div className="text-[11px] sm:text-xs text-slate-500 font-normal leading-tight">
-                {t.nominal.minPaymentDesc}
-              </div>
+              {t.nominal.minPaymentDesc && (
+                <div className="text-[11px] sm:text-xs text-slate-500 font-normal mt-0.5">
+                  {t.nominal.minPaymentDesc}
+                </div>
+              )}
             </div>
           </div>
-          <span className="font-bold text-xs sm:text-sm text-[#003853] tracking-tight">
-            {formatMoney(minimumAmount)}
-          </span>
+          <div className="text-right shrink-0">
+            <span className="font-bold text-xs sm:text-sm text-[#002840] tracking-tight">
+              {formatMoney(minimumAmount)}
+            </span>
+          </div>
         </div>
 
         {/* Option 2: Bayar Angsuran */}
         <div
           onClick={() => handleSelectOption('angsuran')}
-          className={`flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4 cursor-pointer transition-colors ${
+          className={`p-4 sm:p-4.5 flex items-center justify-between cursor-pointer transition-colors ${
             selectedType === 'angsuran'
               ? 'bg-[#FFF6EF]'
-              : 'bg-white hover:bg-slate-50/70'
+              : 'hover:bg-slate-50/60'
           }`}
         >
           <div className="flex items-center gap-3">
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${
                 selectedType === 'angsuran'
-                  ? 'bg-[#F15A24]'
+                  ? 'border-2 border-[#F15A24] bg-white'
                   : 'border-2 border-slate-300 bg-white'
               }`}
             >
               {selectedType === 'angsuran' && (
-                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#F15A24]" />
               )}
             </div>
-            <div>
-              <div className="font-bold text-xs sm:text-sm text-[#003853]">
-                {t.nominal.oneMonthTitle}
-              </div>
-              <div className="text-[11px] sm:text-xs text-slate-500 font-normal leading-tight">
-                {t.nominal.oneMonthDesc}
-              </div>
+            <div className="font-bold text-xs sm:text-sm text-[#002840]">
+              {t.nominal.oneMonthTitle}
             </div>
           </div>
-          <span className="font-bold text-xs sm:text-sm text-[#003853] tracking-tight">
-            {formatMoney(angsuranAmount)}
-          </span>
+          <div className="text-right shrink-0">
+            <span className="font-bold text-xs sm:text-sm text-[#002840] tracking-tight">
+              {formatMoney(angsuranAmount)}
+            </span>
+          </div>
         </div>
 
         {/* Option 3: Bayar Lunas */}
         <div
           onClick={() => handleSelectOption('lunas')}
-          className={`flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4 cursor-pointer transition-colors ${
+          className={`p-4 sm:p-4.5 flex items-center justify-between cursor-pointer transition-colors ${
             selectedType === 'lunas'
               ? 'bg-[#FFF6EF]'
-              : 'bg-white hover:bg-slate-50/70'
+              : 'hover:bg-slate-50/60'
           }`}
         >
           <div className="flex items-center gap-3">
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${
                 selectedType === 'lunas'
-                  ? 'bg-[#F15A24]'
+                  ? 'border-2 border-[#F15A24] bg-white'
                   : 'border-2 border-slate-300 bg-white'
               }`}
             >
               {selectedType === 'lunas' && (
-                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#F15A24]" />
               )}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-xs sm:text-sm text-[#003853]">
-                  {t.nominal.fullPaymentTitle}
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  {t.nominal.recommendedBadge}
-                </span>
-              </div>
-              <div className="text-[11px] sm:text-xs text-slate-500 font-normal leading-tight">
-                {t.nominal.fullPaymentDesc}
-              </div>
+            <div className="font-bold text-xs sm:text-sm text-[#002840]">
+              {t.nominal.fullPaymentTitle}
             </div>
           </div>
-          <span className="font-bold text-xs sm:text-sm text-[#003853] tracking-tight">
-            {formatMoney(lunasAmount)}
-          </span>
+          <div className="text-right shrink-0">
+            <span className="font-bold text-xs sm:text-sm text-[#002840] tracking-tight">
+              {formatMoney(lunasAmount)}
+            </span>
+          </div>
         </div>
 
         {/* Option 4: Nominal Lain */}
         <div
           onClick={handleNominalLainClick}
-          className={`px-4 py-3 sm:px-5 sm:py-3.5 cursor-pointer transition-colors ${
+          className={`p-4 sm:p-4.5 cursor-pointer transition-colors ${
             selectedType === 'custom'
               ? 'bg-[#FFF6EF]'
-              : 'bg-white hover:bg-slate-50/70'
+              : 'hover:bg-slate-50/60'
           }`}
         >
           <div className="flex items-center justify-between gap-3">
@@ -245,28 +239,23 @@ export const NominalScreen: React.FC<NominalScreenProps> = ({
               <div
                 className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${
                   selectedType === 'custom'
-                    ? 'bg-[#F15A24]'
+                    ? 'border-2 border-[#F15A24] bg-white'
                     : 'border-2 border-slate-300 bg-white'
                 }`}
               >
                 {selectedType === 'custom' && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#F15A24]" />
                 )}
               </div>
-              <div>
-                <span className="font-bold text-xs sm:text-sm text-[#003853] block">
-                  {t.nominal.customTitle}
-                </span>
-                <span className="text-[11px] text-slate-500 font-normal">
-                  {t.nominal.customDesc}
-                </span>
-              </div>
+              <span className="font-bold text-xs sm:text-sm text-[#002840]">
+                {t.nominal.customTitle}
+              </span>
             </div>
 
-            {/* Input field matching mockup */}
-            <div className="flex-1 max-w-[220px] sm:max-w-xs ml-2">
-              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50/60 focus-within:bg-white focus-within:border-[#F15A24] transition-all px-2.5 py-1.5">
-                <span className="text-xs font-bold text-slate-400 select-none mr-2">
+            {/* Input Box with Rp prefix badge */}
+            <div className="w-full max-w-[200px] sm:max-w-[240px]">
+              <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden focus-within:border-[#F15A24] focus-within:ring-1 focus-within:ring-[#F15A24]/30 transition-all">
+                <span className="px-2.5 py-1.5 bg-slate-50 border-r border-slate-200 text-xs font-semibold text-slate-500 select-none">
                   {language === 'EN' ? 'IDR' : 'Rp'}
                 </span>
                 <input
@@ -276,36 +265,27 @@ export const NominalScreen: React.FC<NominalScreenProps> = ({
                   value={customInputValue}
                   onChange={handleCustomInputChange}
                   onFocus={() => handleSelectOption('custom')}
-                  className="w-full text-xs sm:text-sm font-semibold text-slate-800 bg-transparent placeholder:text-slate-400 focus:outline-hidden"
+                  className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-transparent placeholder:text-slate-400 focus:outline-hidden"
                 />
               </div>
             </div>
           </div>
 
           {selectedType === 'custom' && customError && (
-            <p className="text-[11px] text-rose-600 mt-2 ml-8 flex items-center gap-1 font-medium">
-              <AlertCircle className="w-3 h-3" />
+            <p className="text-xs text-rose-600 mt-2 pl-8 flex items-center gap-1.5 font-medium">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{customError}</span>
             </p>
           )}
         </div>
       </div>
 
-      {/* Action Button: Kembali and Lanjutkan buttons */}
-      <div className="flex items-center gap-2.5 pt-2">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="flex-1 py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold transition-colors cursor-pointer"
-          >
-            {t.common.back}
-          </button>
-        )}
+      {/* Action Button: Single full-width orange Lanjutkan button (no back button for step 1) */}
+      <div className="pt-2">
         <button
+          type="button"
           onClick={onContinue}
-          className={`${
-            onBack ? 'flex-2' : 'w-full'
-          } py-3 px-4 rounded-xl bg-[#F15A24] hover:bg-[#d94b1a] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-2xs cursor-pointer`}
+          className="w-full py-3.5 px-5 rounded-xl bg-[#F15A24] hover:bg-[#d94815] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-md cursor-pointer"
         >
           <span>{t.nominal.continueBtn}</span>
           <ArrowRight className="w-4 h-4" />

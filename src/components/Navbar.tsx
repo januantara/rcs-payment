@@ -3,15 +3,15 @@ import { Language } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import bniLogo from '../assets/icons/bni.png';
 
-const FlagID: React.FC = () => (
-  <span className="w-3.5 h-2.5 rounded-[2px] overflow-hidden inline-flex flex-col border border-slate-300/80 shadow-2xs shrink-0">
+const FlagID: React.FC<{ active?: boolean }> = ({ active }) => (
+  <span className={`w-3.5 h-2.5 rounded-[2px] overflow-hidden inline-flex flex-col shadow-2xs shrink-0 ${active ? 'border border-white/40' : 'border border-slate-300/80'}`}>
     <span className="w-full h-1/2 bg-[#E11D48]" />
     <span className="w-full h-1/2 bg-white" />
   </span>
 );
 
-const FlagEN: React.FC = () => (
-  <span className="w-3.5 h-2.5 rounded-[2px] overflow-hidden inline-flex border border-slate-300/80 shadow-2xs shrink-0">
+const FlagEN: React.FC<{ active?: boolean }> = ({ active }) => (
+  <span className={`w-3.5 h-2.5 rounded-[2px] overflow-hidden inline-flex shadow-2xs shrink-0 ${active ? 'border border-white/40' : 'border border-slate-300/80'}`}>
     <svg viewBox="0 0 60 30" className="w-full h-full block">
       <clipPath id="uk-flag-clip"><rect width="60" height="30"/></clipPath>
       <g clipPath="url(#uk-flag-clip)">
@@ -71,37 +71,40 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right: Segmented Pill Toggle for Change Language [ ID | EN ] */}
         <div
-          className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/80 shadow-2xs"
+          className="inline-flex items-center p-1 rounded-xl bg-slate-100/80 border border-slate-200/80 shadow-2xs gap-1"
           role="group"
           aria-label={t.navbar.selectLanguage}
         >
           <button
             type="button"
             onClick={() => handleLangChange('ID')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer select-none ${
+            className={`flex items-center justify-center gap-1.5 w-14 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none shrink-0 ${
               language === 'ID'
-                ? 'bg-white text-[#005E7A] shadow-xs ring-1 ring-slate-900/5'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
+                ? 'bg-[#003853] text-white shadow-xs'
+                : 'text-slate-500 hover:text-[#003853] hover:bg-white/60'
             }`}
             aria-pressed={language === 'ID'}
             title="Bahasa Indonesia"
           >
-            <FlagID />
+            <FlagID active={language === 'ID'} />
             <span>ID</span>
           </button>
+
+          {/* Sekat / Divider - Perfectly Centered */}
+          <div className="w-px h-4 bg-slate-300/80 shrink-0 self-center" />
 
           <button
             type="button"
             onClick={() => handleLangChange('EN')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer select-none ${
+            className={`flex items-center justify-center gap-1.5 w-14 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none shrink-0 ${
               language === 'EN'
-                ? 'bg-white text-[#005E7A] shadow-xs ring-1 ring-slate-900/5'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
+                ? 'bg-[#003853] text-white shadow-xs'
+                : 'text-slate-500 hover:text-[#003853] hover:bg-white/60'
             }`}
             aria-pressed={language === 'EN'}
             title="English"
           >
-            <FlagEN />
+            <FlagEN active={language === 'EN'} />
             <span>EN</span>
           </button>
         </div>

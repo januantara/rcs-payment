@@ -25,12 +25,26 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
   compact = false,
 }) => {
   const { t } = useLanguage();
-  // By default, Virtual Account sub-options are collapsed
-  const [isVaExpanded, setIsVaExpanded] = useState<boolean>(false);
+  // By default, Virtual Account sub-options are expanded
+  const [isVaExpanded, setIsVaExpanded] = useState<boolean>(selectedChannel === 'va' || !selectedChannel);
+  const [isQrisExpanded, setIsQrisExpanded] = useState<boolean>(selectedChannel === 'qris');
 
   const handleToggleVa = () => {
     onSelectChannel('va');
     setIsVaExpanded((prev) => !prev);
+    setIsQrisExpanded(false);
+  };
+
+  const handleToggleQris = () => {
+    onSelectChannel('qris');
+    setIsQrisExpanded((prev) => (selectedChannel === 'qris' ? !prev : true));
+    setIsVaExpanded(false);
+  };
+
+  const handleSelectTransfer = () => {
+    onSelectChannel('transfer');
+    setIsVaExpanded(false);
+    setIsQrisExpanded(false);
   };
   return (
     <div className={`space-y-4 sm:space-y-5 animate-in fade-in duration-300 ${compact ? 'text-xs' : ''}`}>
@@ -101,7 +115,7 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
                       onSelectChannel('va');
                       onSelectBank(bank.id);
                     }}
-                    className={`flex items-center justify-center h-12 sm:h-13 px-2 sm:px-3 py-1.5 rounded-xl border-2 transition-all cursor-pointer bg-white overflow-hidden ${
+                    className={`flex items-center justify-center h-12 sm:h-13 px-2 sm:px-3 py-1.5 rounded-xl border transition-all cursor-pointer bg-white overflow-hidden ${
                       isSelected
                         ? 'border-[#F15A24] bg-orange-50/20 shadow-2xs'
                         : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
@@ -126,64 +140,85 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
 
         {/* Method 2: QRIS */}
         <div
-          onClick={() => {
-            onSelectChannel('qris');
-            setIsVaExpanded(false);
-          }}
+          onClick={handleToggleQris}
           className={`rounded-xl border transition-all p-3.5 cursor-pointer ${
             selectedChannel === 'qris'
               ? 'border-[#F15A24] bg-white shadow-2xs'
               : 'border-slate-200 hover:border-slate-300 bg-white'
           }`}
         >
-          <div className="flex items-center justify-between">
+          <div className={`flex items-center justify-between ${isQrisExpanded ? 'mb-2.5' : ''}`}>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
                 <QrCode className="w-4 h-4" />
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
+                <div>
                   <h3 className="font-bold text-xs sm:text-sm text-slate-900">{t.landing.qrisName}</h3>
-                  <span className="px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 text-[10px] font-extrabold uppercase">
-                    {t.method.qrisBadge}
-                  </span>
                 </div>
                 <p className="text-[10px] sm:text-[11px] text-slate-500">{t.method.qrisSubtitle}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              {selectedChannel === 'qris' ? (
-                <div className="w-5 h-5 rounded-full bg-[#F15A24] text-white flex items-center justify-center">
-                  <Check className="w-3 h-3 stroke-[3]" />
-                </div>
-              ) : (
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              )}
-            </div>
+            <ChevronRight
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isQrisExpanded ? 'rotate-90 text-[#005E7A]' : 'text-slate-400'
+              }`}
+            />
           </div>
 
-          {/* Sub-card when QRIS is selected */}
-          {selectedChannel === 'qris' && (
-            <div className="pt-3 mt-3 border-t border-slate-100 animate-in fade-in duration-200 space-y-2">
-              <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <Check className="w-3 h-3 text-emerald-600" />
+          {/* Sub-card when QRIS is expanded */}
+          {isQrisExpanded && (
+            <div className="pt-2.5 border-t border-slate-100 animate-in fade-in duration-200 space-y-2.5">
+              {/* Feature pills */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold text-[11px]">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                   {t.method.qrisFeeZero}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200">
-                  <Check className="w-3 h-3 text-sky-600" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200/80 font-semibold text-[11px]">
+                  <Check className="w-3.5 h-3.5 text-sky-600 stroke-[2.5]" />
                   {t.method.qrisInstantVerify}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                {['GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja', 'BCA Mobile', 'Livin\' Mandiri', 'BRImo', 'Wondr BNI'].map((app) => (
-                  <span
-                    key={app}
-                    className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium"
-                  >
-                    {app}
+
+              {/* Supported apps list */}
+              <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+                  <span>{t.method.supportedQrisApps}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-extrabold tracking-wider">
+                    QRIS / GPN
                   </span>
-                ))}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { name: 'Wondr by BNI', dot: 'bg-[#005E7A]' },
+                    { name: 'BCA Mobile', dot: 'bg-blue-600' },
+                    { name: 'Livin\' Mandiri', dot: 'bg-amber-500' },
+                    { name: 'BRImo', dot: 'bg-sky-600' },
+                    { name: 'GoPay', dot: 'bg-emerald-600' },
+                    { name: 'OVO', dot: 'bg-purple-600' },
+                    { name: 'DANA', dot: 'bg-sky-500' },
+                    { name: 'ShopeePay', dot: 'bg-orange-600' },
+                    { name: 'LinkAja', dot: 'bg-rose-600' },
+                  ].map((app) => (
+                    <span
+                      key={app.name}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-[10px] sm:text-[11px] font-medium border border-slate-200 shadow-2xs transition-colors"
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${app.dot}`} />
+                      {app.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next step notice */}
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-orange-50/60 border border-orange-200/70 text-[11px] text-orange-900 leading-snug">
+                <QrCode className="w-4 h-4 text-[#F15A24] shrink-0" />
+                <span>
+                  Kode QR pembayaran akan otomatis dibuat di langkah berikutnya. Silakan klik{' '}
+                  <span className="font-bold text-[#F15A24]">Lanjutkan</span> untuk melanjutkan pembayaran.
+                </span>
               </div>
             </div>
           )}
@@ -191,10 +226,7 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
 
         {/* Method 3: Transfer Bank */}
         <div
-          onClick={() => {
-            onSelectChannel('transfer');
-            setIsVaExpanded(false);
-          }}
+          onClick={handleSelectTransfer}
           className={`rounded-xl border transition-all p-3.5 cursor-pointer flex items-center justify-between ${
             selectedChannel === 'transfer'
               ? 'border-[#F15A24] bg-white shadow-2xs'
