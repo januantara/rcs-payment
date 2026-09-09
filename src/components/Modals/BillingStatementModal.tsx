@@ -3,6 +3,7 @@ import { X, Download, CheckCircle2, ShieldCheck, QrCode, Building2, FileText, Lo
 import { DebtorInfo, BillBreakdown, PaymentChannel, BankId } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { generatePaymentReceiptPdf } from '../../utils/pdfGenerator';
+import { formatTerbilang } from '../../utils/formatters';
 import bniLogo from '../../assets/icons/bni.png';
 
 interface BillingStatementModalProps {
@@ -39,10 +40,10 @@ export const BillingStatementModal: React.FC<BillingStatementModalProps> = ({
   const totalAmount = amount ?? breakdown.total;
   const billingNo = `BILL-${referenceNo.replace(/[^0-9]/g, '').slice(-10) || '2026091001'}`;
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setIsDownloading(true);
-    setTimeout(() => {
-      generatePaymentReceiptPdf({
+    try {
+      await generatePaymentReceiptPdf({
         referenceNo,
         dateTime,
         totalAmount,
@@ -54,10 +55,13 @@ export const BillingStatementModal: React.FC<BillingStatementModalProps> = ({
         billingNo,
         isPaid,
       });
-      setIsDownloading(false);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
-    }, 600);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -272,39 +276,71 @@ export const BillingStatementModal: React.FC<BillingStatementModalProps> = ({
                   </table>
 
                   {/* Summary Rows */}
-                  <div className="bg-slate-50 p-3.5 border-t border-slate-200 space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center text-slate-600 text-[11px]">
-                      <span>Subtotal Kewajiban Tagihan:</span>
-                      <span className="font-semibold">{formatMoney(breakdown.total)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-slate-600 text-[11px]">
-                      <span>Penyesuaian / Diskon Denda:</span>
-                      <span className="font-semibold text-emerald-600">Rp 0</span>
-                    </div>
-                    <div className="border-t border-slate-200 pt-1.5 flex justify-between items-center font-bold text-slate-900">
-                      <span>TOTAL TAGIHAN KREDIT:</span>
-                      <span className="text-sm text-[#003853]">{formatMoney(breakdown.total)}</span>
-                    </div>
-
-                    {isPaid ? (
-                      <>
-                        <div className="flex justify-between items-center font-bold text-emerald-700">
-                          <span>TOTAL PEMBAYARAN DITERIMA:</span>
-                          <span className="text-sm">{formatMoney(totalAmount)}</span>
-                        </div>
-                        <div className="flex justify-between items-center font-extrabold text-[#F15A24] pt-0.5">
-                          <span>SISA KEWAJIBAN / SALDO TERHUTANG:</span>
-                          <span className="text-xs bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
-                            Rp 0 (LUNAS / ZERO BALANCE)
+                  <div className="bg-slate-50/90 border-t border-slate-200 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                      {/* Left: Terbilang & Status Info */}
+                      <div className="space-y-2 text-xs pr-0 md:pr-4 md:border-r md:border-slate-200/80">
+                        <div>
+                          <span className="text-[10px] font-bold text-[#005E7A] uppercase tracking-wider block">
+                            Terbilang / Amount in Words
                           </span>
+                          <p className="font-semibold text-slate-800 italic mt-0.5 text-[11px] leading-snug">
+                            # {formatTerbilang(totalAmount).toUpperCase()} #
+                          </p>
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex justify-between items-center font-extrabold text-[#F15A24]">
-                        <span>SISA KEWAJIBAN HARUS DIBAYAR:</span>
-                        <span className="text-sm">{formatMoney(totalAmount)}</span>
+                        <div className="pt-1">
+                          {isPaid ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              STATUS: LUNAS (ZERO BALANCE)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
+                              STATUS: MENUNGGU PEMBAYARAN
+                            </span>
+                          )}
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            {isPaid
+                              ? 'Kewajiban periode ini telah dibayarkan penuh dan dibukukan resmi.'
+                              : 'Mohon selesaikan pelunasan sebelum tanggal jatuh tempo.'}
+                          </p>
+                        </div>
                       </div>
-                    )}
+
+                      {/* Right: Calculations */}
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center text-slate-600 text-[11px]">
+                          <span>Subtotal Kewajiban Tagihan:</span>
+                          <span className="font-semibold text-slate-900">{formatMoney(breakdown.total)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-slate-600 text-[11px]">
+                          <span>Penyesuaian / Diskon Denda:</span>
+                          <span className="font-semibold text-slate-400">Rp 0</span>
+                        </div>
+                        <div className="border-t border-slate-200 pt-1.5 flex justify-between items-center font-bold text-slate-900">
+                          <span>TOTAL TAGIHAN KREDIT:</span>
+                          <span className="text-sm text-[#003853] font-extrabold">{formatMoney(breakdown.total)}</span>
+                        </div>
+
+                        {isPaid ? (
+                          <>
+                            <div className="flex justify-between items-center text-emerald-700 text-[11px] font-semibold">
+                              <span>Total Pembayaran Diterima:</span>
+                              <span className="font-bold">{formatMoney(totalAmount)}</span>
+                            </div>
+                            <div className="flex justify-between items-center px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 font-bold text-emerald-800 text-[11px] mt-1">
+                              <span>SISA KEWAJIBAN:</span>
+                              <span>Rp 0 (LUNAS)</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex justify-between items-center px-2.5 py-1.5 rounded-md bg-amber-50 border border-amber-200 font-bold text-amber-900 text-xs mt-1">
+                            <span>SISA HARUS DIBAYAR:</span>
+                            <span className="text-sm text-[#F15A24] font-extrabold">{formatMoney(totalAmount)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

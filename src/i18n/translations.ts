@@ -49,6 +49,20 @@ export interface TranslationSchema {
     transferDesc: string;
     autodebitName: string;
     autodebitDesc: string;
+    channelBadge?: string;
+    channelSubtitle?: string;
+    badgePopular?: string;
+    badgeInstant?: string;
+    badgeAllBanks?: string;
+    badgeAuto?: string;
+    speedRealtime?: string;
+    speedInstant?: string;
+    speedNetwork?: string;
+    speedAutomatic?: string;
+    selectBtn?: string;
+    securityGuarantee?: string;
+    securityGuaranteeDesc?: string;
+    callCenter?: string;
   };
   nominal: {
     title: string;
@@ -342,6 +356,20 @@ export const translations: Record<Language, TranslationSchema> = {
       transferDesc: 'Langsung dari bank atau e-wallet',
       autodebitName: 'Auto Debit',
       autodebitDesc: 'Bagi yang sudah daftar autodebit',
+      channelBadge: 'Kanal Pembayaran Resmi',
+      channelSubtitle: 'Pilih metode yang Anda inginkan. Seluruh transaksi dijamin aman, terenkripsi, dan langsung diverifikasi otomatis oleh Core Banking BNI.',
+      badgePopular: 'Paling Populer',
+      badgeInstant: 'Instan & Praktis',
+      badgeAllBanks: 'Semua Bank',
+      badgeAuto: 'Otomatis Bulanan',
+      speedRealtime: 'Verifikasi Real-Time',
+      speedInstant: 'Langsung Terverifikasi',
+      speedNetwork: 'Jaringan Antar Bank',
+      speedAutomatic: 'Debet Otomatis',
+      selectBtn: 'Pilih Metode',
+      securityGuarantee: 'Jaminan Keamanan Transaksi BNI',
+      securityGuaranteeDesc: 'Sistem terhubung langsung ke Core Banking BNI 24/7 tanpa perantara. Bebas biaya admin tambahan.',
+      callCenter: 'BNI Call 24 Jam:',
     },
     nominal: {
       title: 'Pilih Nominal Pembayaran',
@@ -670,6 +698,20 @@ export const translations: Record<Language, TranslationSchema> = {
       transferDesc: 'Direct transfer from bank or e-wallet',
       autodebitName: 'Auto Debit',
       autodebitDesc: 'For registered autodebit customers',
+      channelBadge: 'Official Payment Channels',
+      channelSubtitle: 'Select your preferred method. All transactions are secure, encrypted, and instantly verified by BNI Core Banking.',
+      badgePopular: 'Most Popular',
+      badgeInstant: 'Instant & Easy',
+      badgeAllBanks: 'All Banks',
+      badgeAuto: 'Monthly Auto',
+      speedRealtime: 'Real-Time Verified',
+      speedInstant: 'Instantly Verified',
+      speedNetwork: 'Interbank Network',
+      speedAutomatic: 'Auto Debit',
+      selectBtn: 'Select Method',
+      securityGuarantee: 'BNI Transaction Security Guarantee',
+      securityGuaranteeDesc: 'Directly connected to BNI Core Banking 24/7 with zero extra admin fees.',
+      callCenter: 'BNI Call 24/7:',
     },
     nominal: {
       title: 'Select Payment Amount',

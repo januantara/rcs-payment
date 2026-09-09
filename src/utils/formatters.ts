@@ -38,3 +38,23 @@ export function generateRefNo(): string {
   const randNum = Math.floor(100000 + Math.random() * 900000);
   return `BNI${dateStr}1032${randNum.toString().slice(0, 3)}`;
 }
+
+function terbilangHelper(n: number): string {
+  const huruf = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+  n = Math.floor(Math.abs(n));
+  if (n < 12) return huruf[n];
+  if (n < 20) return terbilangHelper(n - 10) + ' Belas';
+  if (n < 100) return terbilangHelper(Math.floor(n / 10)) + ' Puluh ' + terbilangHelper(n % 10);
+  if (n < 200) return 'Seratus ' + terbilangHelper(n - 100);
+  if (n < 1000) return terbilangHelper(Math.floor(n / 100)) + ' Ratus ' + terbilangHelper(n % 100);
+  if (n < 2000) return 'Seribu ' + terbilangHelper(n - 1000);
+  if (n < 1000000) return terbilangHelper(Math.floor(n / 1000)) + ' Ribu ' + terbilangHelper(n % 1000);
+  if (n < 1000000000) return terbilangHelper(Math.floor(n / 1000000)) + ' Juta ' + terbilangHelper(n % 1000000);
+  if (n < 1000000000000) return terbilangHelper(Math.floor(n / 1000000000)) + ' Miliar ' + terbilangHelper(n % 1000000000);
+  return '';
+}
+
+export function formatTerbilang(amount: number): string {
+  const t = terbilangHelper(amount).replace(/\s+/g, ' ').trim();
+  return t ? `${t} Rupiah` : 'Nol Rupiah';
+}

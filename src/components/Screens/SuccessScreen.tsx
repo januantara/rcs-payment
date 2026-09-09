@@ -76,10 +76,10 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
     }
   }, []);
 
-  const handleDownloadReceipt = () => {
+  const handleDownloadReceipt = async () => {
     setIsDownloading(true);
-    setTimeout(() => {
-      generatePaymentReceiptPdf({
+    try {
+      await generatePaymentReceiptPdf({
         referenceNo,
         dateTime,
         totalAmount: amount,
@@ -91,10 +91,13 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
         billingNo,
         isPaid: true,
       });
-      setIsDownloading(false);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
-    }, 600);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (

@@ -14,11 +14,12 @@ import { SuccessScreen } from './components/Screens/SuccessScreen';
 import { Footer } from './components/Footer';
 import { BillDetailModal } from './components/Modals/BillDetailModal';
 import { PaymentGuideModal } from './components/Modals/PaymentGuideModal';
+import { useLanguage } from './i18n/LanguageContext';
 
 export default function App() {
   // Current active stage
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('landing');
-  const [language, setLanguage] = useState<Language>('ID');
+  const { language, setLanguage } = useLanguage();
 
   // Transaction state
   const [selectedNominalType, setSelectedNominalType] = useState<NominalSelectionType>('minimum');
