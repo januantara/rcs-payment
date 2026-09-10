@@ -42,19 +42,11 @@ export const BankBadge: React.FC<BankLogoProps> = ({ bankId, className = 'h-6' }
   const id = bankId.toLowerCase();
   const logo = bankLogos[id];
   if (logo) {
-    // Optical scale adjustment: BCA and Mandiri have finer strokes/typography
-    const scaleClass =
-      id === 'bca'
-        ? 'scale-115'
-        : id === 'mandiri'
-        ? 'scale-120'
-        : '';
-
     return (
       <img
         src={logo}
         alt={`Logo ${bankId.toUpperCase()}`}
-        className={`object-contain transition-transform ${scaleClass} ${className}`}
+        className={`object-contain ${className}`}
       />
     );
   }

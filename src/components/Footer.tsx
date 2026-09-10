@@ -103,7 +103,7 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* ── Bottom Legal & Compliance Notice Bar ── */}
-      <div className="w-full bg-[#f8fafc] py-3.5 px-4 sm:px-6 md:px-8 relative z-20">
+      <div className="w-full bg-white py-3.5 px-4 sm:px-6 md:px-8 relative z-20">
         <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[10.5px] sm:text-[11px] text-slate-400 text-center sm:text-left">
           <p>© {new Date().getFullYear()} <span className="font-semibold text-slate-500">PT Bank Negara Indonesia (Persero) Tbk.</span> Hak Cipta Dilindungi.</p>
           <p className="text-slate-400">{t.footer.securityNotice}</p>

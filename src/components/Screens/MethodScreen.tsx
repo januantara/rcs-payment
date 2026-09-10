@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, ChevronRight, ArrowRight, Building2, QrCode, Landmark, Check } from 'lucide-react';
+import { Shield, ChevronRight, ArrowRight, Building2, QrCode, Landmark } from 'lucide-react';
 import { PaymentChannel, BankId } from '../../types';
 import { banksList } from '../../data/mockData';
 import { BankBadge } from '../BankLogos';
@@ -125,10 +125,10 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
                       bankId={bank.id}
                       className={
                         bank.id === 'bca'
-                          ? 'max-h-7 sm:max-h-8 max-w-[85px] sm:max-w-[100px] w-auto h-auto'
+                          ? 'max-h-5 sm:max-h-6 max-w-[60px] sm:max-w-[80px] w-auto h-auto'
                           : bank.id === 'mandiri'
-                          ? 'max-h-7 sm:max-h-8 max-w-[90px] sm:max-w-[105px] w-auto h-auto'
-                          : 'max-h-6 sm:max-h-7 max-w-[75px] sm:max-w-[90px] w-auto h-auto'
+                          ? 'max-h-5.5 sm:max-h-6.5 max-w-[65px] sm:max-w-[85px] w-auto h-auto'
+                          : 'max-h-5.5 sm:max-h-6.5 max-w-[62px] sm:max-w-[80px] w-auto h-auto'
                       }
                     />
                   </button>
@@ -168,57 +168,30 @@ export const MethodScreen: React.FC<MethodScreenProps> = ({
 
           {/* Sub-card when QRIS is expanded */}
           {isQrisExpanded && (
-            <div className="pt-2.5 border-t border-slate-100 animate-in fade-in duration-200 space-y-2.5">
-              {/* Feature pills */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold text-[11px]">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                  {t.method.qrisFeeZero}
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200/80 font-semibold text-[11px]">
-                  <Check className="w-3.5 h-3.5 text-sky-600 stroke-[2.5]" />
-                  {t.method.qrisInstantVerify}
-                </span>
+            <div className="pt-2.5 border-t border-slate-100 animate-in fade-in duration-200 space-y-2">
+              <div className="text-[11px] font-semibold text-slate-600">
+                {t.method.supportedQrisApps}
               </div>
-
-              {/* Supported apps list */}
-              <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
-                  <span>{t.method.supportedQrisApps}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-extrabold tracking-wider">
-                    QRIS / GPN
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  { name: 'Wondr by BNI', dot: 'bg-[#005E7A]' },
+                  { name: 'BCA Mobile', dot: 'bg-blue-600' },
+                  { name: 'Livin\' Mandiri', dot: 'bg-amber-500' },
+                  { name: 'BRImo', dot: 'bg-sky-600' },
+                  { name: 'GoPay', dot: 'bg-emerald-600' },
+                  { name: 'OVO', dot: 'bg-purple-600' },
+                  { name: 'DANA', dot: 'bg-sky-500' },
+                  { name: 'ShopeePay', dot: 'bg-orange-600' },
+                  { name: 'LinkAja', dot: 'bg-rose-600' },
+                ].map((app) => (
+                  <span
+                    key={app.name}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-[10px] sm:text-[11px] font-medium border border-slate-200/80 shadow-2xs transition-colors"
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${app.dot}`} />
+                    {app.name}
                   </span>
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { name: 'Wondr by BNI', dot: 'bg-[#005E7A]' },
-                    { name: 'BCA Mobile', dot: 'bg-blue-600' },
-                    { name: 'Livin\' Mandiri', dot: 'bg-amber-500' },
-                    { name: 'BRImo', dot: 'bg-sky-600' },
-                    { name: 'GoPay', dot: 'bg-emerald-600' },
-                    { name: 'OVO', dot: 'bg-purple-600' },
-                    { name: 'DANA', dot: 'bg-sky-500' },
-                    { name: 'ShopeePay', dot: 'bg-orange-600' },
-                    { name: 'LinkAja', dot: 'bg-rose-600' },
-                  ].map((app) => (
-                    <span
-                      key={app.name}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-[10px] sm:text-[11px] font-medium border border-slate-200 shadow-2xs transition-colors"
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${app.dot}`} />
-                      {app.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Next step notice */}
-              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-orange-50/60 border border-orange-200/70 text-[11px] text-orange-900 leading-snug">
-                <QrCode className="w-4 h-4 text-[#F15A24] shrink-0" />
-                <span>
-                  Kode QR pembayaran akan otomatis dibuat di langkah berikutnya. Silakan klik{' '}
-                  <span className="font-bold text-[#F15A24]">Lanjutkan</span> untuk melanjutkan pembayaran.
-                </span>
+                ))}
               </div>
             </div>
           )}

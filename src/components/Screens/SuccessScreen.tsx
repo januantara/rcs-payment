@@ -5,8 +5,6 @@ import {
   Shield,
   Loader2,
   CheckCircle,
-  FileText,
-  Eye,
   ShieldCheck,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -221,23 +219,14 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
           </div>
 
           {/* Digital Stamp Validation Note */}
-          <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-xl bg-teal-50/50 border border-teal-200/60 text-xs text-teal-950 gap-3">
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#005E7A] shrink-0" />
-              <div className="space-y-0.5">
-                <span className="font-bold text-[#003853] block text-xs sm:text-[13px]">Tervalidasi Host Core Banking BNI</span>
-                <span className="text-slate-500 text-[10px] sm:text-[11px] block">
-                  Dokumen sah sesuai UU ITE No. 11/2008 Pasal 5 Ayat 1
-                </span>
-              </div>
+          <div className="flex items-center p-3 sm:p-3.5 rounded-xl bg-teal-50/50 border border-teal-200/60 text-xs text-teal-950 gap-2.5">
+            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#005E7A] shrink-0" />
+            <div className="space-y-0.5">
+              <span className="font-bold text-[#003853] block text-xs sm:text-[13px]">Tervalidasi Host Core Banking BNI</span>
+              <span className="text-slate-500 text-[10px] sm:text-[11px] block">
+                Dokumen sah sesuai UU ITE No. 11/2008 Pasal 5 Ayat 1
+              </span>
             </div>
-            <button
-              onClick={() => setIsPreviewOpen(true)}
-              className="text-[#005E7A] hover:text-[#003853] font-bold underline flex items-center gap-1 shrink-0 cursor-pointer text-xs"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span>Pratinjau Penuh</span>
-            </button>
           </div>
         </div>
       </div>
@@ -267,22 +256,12 @@ export const SuccessScreen: React.FC<SuccessScreenProps> = ({
           )}
         </button>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-          <button
-            onClick={() => setIsPreviewOpen(true)}
-            className="py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.99] text-slate-700 text-xs sm:text-[13px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer bg-white"
-          >
-            <FileText className="w-4 h-4 text-slate-500" />
-            <span>{t.success.previewBillingBtn}</span>
-          </button>
-
-          <button
-            onClick={onBackToBilling}
-            className="py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.99] text-slate-700 text-xs sm:text-[13px] font-bold transition-all cursor-pointer bg-white"
-          >
-            {t.success.backToBilling}
-          </button>
-        </div>
+        <button
+          onClick={onBackToBilling}
+          className="w-full py-2.5 sm:py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.99] text-slate-700 text-xs sm:text-[13px] font-bold flex items-center justify-center transition-all cursor-pointer bg-white"
+        >
+          {t.success.backToBilling}
+        </button>
       </div>
 
       {/* Anti-Fraud Security Notice Banner at bottom matching mockup */}

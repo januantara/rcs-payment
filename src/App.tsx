@@ -52,6 +52,7 @@ export default function App() {
   const [referenceNo, setReferenceNo] = useState<string>('BNI20260910103200123');
   const [transactionTime, setTransactionTime] = useState<string>('10 September 2026 | 10:32 WIB');
   const [expiryDateTime] = useState<string>('10 September 2026 | 23:59 WIB');
+  const [qrisExpiryDateTime] = useState<string>('11 September 2026 | 10:32 WIB');
 
   // Modals state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
@@ -171,7 +172,7 @@ export default function App() {
               <div className="max-w-2xl mx-auto">
                 <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
                   {/* In-screen Stepper with subtle thin gray background */}
-                  <div className="bg-slate-100/70 border-b border-slate-200/80 px-4">
+                  <div className="bg-slate-100/70 border-b border-slate-200/80 px-3 sm:px-4">
                     <Stepper
                       currentScreen={currentScreen}
                       channel={selectedChannel}
@@ -212,7 +213,7 @@ export default function App() {
                         channel={selectedChannel}
                         vaNumber={vaNumber}
                         amount={selectedAmount}
-                        expiryDateTime={expiryDateTime}
+                        expiryDateTime={selectedChannel === 'qris' ? qrisExpiryDateTime : expiryDateTime}
                         onContinueToWaiting={() => handleStageChange('waiting')}
                         onOpenGuideModal={() => setIsGuideModalOpen(true)}
                         onBack={() => handleStageChange('method')}
@@ -225,7 +226,7 @@ export default function App() {
                         channel={selectedChannel}
                         vaNumber={vaNumber}
                         amount={selectedAmount}
-                        expiryDateTime={expiryDateTime}
+                        expiryDateTime={selectedChannel === 'qris' ? qrisExpiryDateTime : expiryDateTime}
                         onPaymentSuccess={handlePaymentSuccess}
                         onBackToHome={() => handleStageChange('landing')}
                       />

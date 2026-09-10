@@ -46,39 +46,49 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-md border-b border-slate-100/80 shadow-sm sticky top-0 z-50">
-      <div className="w-full px-4 sm:px-6 md:px-8 h-14 sm:h-16 flex items-center justify-between">
+      <div className="w-full px-3 sm:px-6 md:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Left: Logo BNI dengan text "Retail Collection System" */}
         <div
           onClick={onLogoClick}
-          className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none group"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onLogoClick?.(); }}
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none group transition-all duration-200 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#005E6A]/30 rounded-lg min-w-0"
           title={t.navbar.backToHome}
         >
           {/* Logo BNI from Assets */}
-          <img
-            src={bniLogo}
-            alt="BNI"
-            className="h-7 sm:h-8 w-auto object-contain group-hover:scale-105 transition-transform"
-          />
+          <div className="shrink-0">
+            <img
+              src={bniLogo}
+              alt="BNI"
+              className="h-6 sm:h-8 w-auto object-contain"
+            />
+          </div>
 
           {/* Divider */}
-          <div className="h-4 w-px bg-slate-200 mx-0.5" />
+          <div className="h-5 sm:h-7 w-px bg-gradient-to-b from-slate-200 via-slate-300 to-slate-200 shrink-0 mx-0.5" />
 
           {/* Text: Retail Collection System */}
-          <span className="text-xs sm:text-sm font-bold text-[#003853] tracking-tight">
-            {t.navbar.systemName}
-          </span>
+          <div className="flex flex-col justify-center min-w-0">
+            <span className="text-xs sm:text-sm md:text-[15px] font-bold text-[#003853] tracking-tight leading-tight truncate">
+              {t.navbar.systemName}
+            </span>
+            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 tracking-normal leading-tight hidden sm:block truncate mt-0.5">
+              {language === 'EN' ? 'Official BNI Payment Channel' : 'Kanal Resmi Pembayaran BNI'}
+            </span>
+          </div>
         </div>
 
         {/* Right: Segmented Pill Toggle for Change Language [ ID | EN ] */}
         <div
-          className="inline-flex items-center p-1 rounded-xl bg-slate-100/80 border border-slate-200/80 shadow-2xs gap-1"
+          className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-slate-100/80 border border-slate-200/80 shadow-2xs gap-0.5 sm:gap-1 shrink-0"
           role="group"
           aria-label={t.navbar.selectLanguage}
         >
           <button
             type="button"
             onClick={() => handleLangChange('ID')}
-            className={`flex items-center justify-center gap-1.5 w-14 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none shrink-0 ${
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:w-14 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none shrink-0 ${
               language === 'ID'
                 ? 'bg-[#003853] text-white shadow-xs'
                 : 'text-slate-500 hover:text-[#003853] hover:bg-white/60'
@@ -91,12 +101,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Sekat / Divider - Perfectly Centered */}
-          <div className="w-px h-4 bg-slate-300/80 shrink-0 self-center" />
+          <div className="w-px h-3.5 sm:h-4 bg-slate-300/80 shrink-0 self-center" />
 
           <button
             type="button"
             onClick={() => handleLangChange('EN')}
-            className={`flex items-center justify-center gap-1.5 w-14 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none shrink-0 ${
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:w-14 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none shrink-0 ${
               language === 'EN'
                 ? 'bg-[#003853] text-white shadow-xs'
                 : 'text-slate-500 hover:text-[#003853] hover:bg-white/60'

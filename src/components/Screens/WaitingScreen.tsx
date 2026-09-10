@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Copy, Check, ChevronLeft, Sparkles, RefreshCw, CreditCard, FileCheck, Loader2, QrCode } from 'lucide-react';
 import { PaymentChannel } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -22,12 +22,46 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
   onBackToHome,
   compact = false,
 }) => {
-  const { t, formatMoney, formatDateLocalized } = useLanguage();
+  const { t, language, formatMoney, formatDateLocalized } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([1]);
   const [activeLoadingStep, setActiveLoadingStep] = useState<number | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [showQrPreview, setShowQrPreview] = useState(false);
+
+  // 24 Hours Countdown Timer for QRIS
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const savedExpiry = sessionStorage.getItem('rcs_qris_expiry_timestamp');
+      if (savedExpiry) {
+        const diff = Math.floor((parseInt(savedExpiry, 10) - Date.now()) / 1000);
+        if (diff > 0 && diff <= 86400) return diff;
+      }
+    }
+    return 24 * 60 * 60;
+  });
+
+  useEffect(() => {
+    if (channel !== 'qris') return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [channel]);
+
+  const formatCountdown = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(vaNumber.replace(/\s+/g, ''));
@@ -100,14 +134,15 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
               {vaNumber}
             </span>
             <button
+              type="button"
               onClick={handleCopy}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer shadow-2xs ${
                 copied
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                  : 'bg-white border-sky-300 text-sky-700 hover:bg-sky-50 shadow-2xs'
+                  : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-sky-600" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
               <span>{copied ? t.waiting.copied : t.waiting.copy}</span>
             </button>
           </div>
@@ -125,6 +160,15 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({
           <div className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
             {formatDateLocalized(expiryDateTime)}
           </div>
+          {channel === 'qris' && (
+            <div className="inline-flex items-center gap-1.5 mt-1.5 text-xs text-slate-500">
+              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>{language === 'EN' ? 'Time remaining:' : 'Sisa waktu:'}</span>
+              <span className="font-mono font-bold text-slate-800 tracking-wider">
+                {formatCountdown(timeLeft)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* QR Code toggle if QRIS */}

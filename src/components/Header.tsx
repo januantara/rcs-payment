@@ -22,14 +22,29 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left: Brand */}
         <div 
           onClick={onLogoClick}
-          className="flex items-center gap-3 cursor-pointer group"
-          title="Kembali ke Beranda"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onLogoClick?.(); }}
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer group select-none transition-all duration-200 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#005E6A]/30 rounded-lg min-w-0 pr-1"
+          title={language === 'EN' ? 'Back to Home' : 'Kembali ke Beranda'}
         >
-          <BniLogo className="h-8" />
-          <div className="h-5 w-px bg-slate-200 hidden sm:block" />
-          <span className="text-xs sm:text-sm font-semibold text-slate-600 tracking-tight hidden sm:inline">
-            Retail Collection System
-          </span>
+          {/* BNI Official Logo */}
+          <div className="shrink-0">
+            <BniLogo className="h-6 sm:h-8" />
+          </div>
+
+          {/* Divider */}
+          <div className="h-5 sm:h-7 w-px bg-gradient-to-b from-slate-200 via-slate-300 to-slate-200 shrink-0 mx-0.5" />
+
+          {/* Brand Identity & Portal Hierarchy */}
+          <div className="flex flex-col justify-center min-w-0">
+            <span className="text-xs sm:text-sm md:text-[15px] font-bold text-[#003853] tracking-tight leading-tight truncate">
+              Retail Collection System
+            </span>
+            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 tracking-normal leading-tight hidden sm:block truncate mt-0.5">
+              {language === 'EN' ? 'Official BNI Payment Channel' : 'Kanal Resmi Pembayaran BNI'}
+            </span>
+          </div>
         </div>
 
         {/* Right: Security info & Language selector */}
