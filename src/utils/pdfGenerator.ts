@@ -55,6 +55,19 @@ function rRect(doc: jsPDF, x: number, y: number, w: number, h: number, r = 1.5, 
   doc.roundedRect(x, y, w, h, r, r, style);
 }
 
+/** Draws a rectangle with only top-left and top-right corners rounded to prevent color overflow */
+function drawTopRoundedRect(doc: jsPDF, x: number, y: number, w: number, h: number, r = 1.2, style = 'F') {
+  const s = (4 / 3) * (Math.SQRT2 - 1);
+  doc.lines([
+    [w - 2 * r, 0],                            // top edge
+    [r * s, 0, r, r - r * s, r, r],            // top-right corner curve
+    [0, h - r],                                // right edge down
+    [-w, 0],                                   // flat bottom edge
+    [0, -(h - r)],                             // left edge up
+    [0, -r * s, r * s, -r, r, -r]              // top-left corner curve
+  ], x + r, y, [1, 1], style, true);
+}
+
 /** Two-column Key-Value row inside a card */
 function drawCardRow(
   doc: jsPDF,
@@ -93,8 +106,10 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   // Resolved breakdown
   const pokok = data.breakdown?.pokok ?? Math.round(data.totalAmount * 0.914);
   const bunga = data.breakdown?.bunga ?? Math.round(data.totalAmount * 0.057);
-  const denda = data.breakdown?.denda ?? (data.totalAmount - pokok - bunga);
-  const total = data.totalAmount;
+  const denda = data.breakdown?.denda ?? 0;
+  const totalBilled = data.breakdown?.total ?? (pokok + bunga + denda);
+  const totalPaid = data.totalAmount;
+  const remainingBalance = Math.max(0, totalBilled - totalPaid);
 
   const billingNo = data.billingNo ||
     `BILL-${data.referenceNo.replace(/[^0-9]/g, '').slice(-10) || '0103200123'}`;
@@ -153,24 +168,30 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
 
   // Right side: Document Title & Status Pill
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
+  doc.setFontSize(10.2);
   setColor(doc, C.bniNavy);
-  doc.text('LEMBAR TAGIHAN & BUKTI PELUNASAN', MR, 11.5, { align: 'right' });
+  doc.text('LEMBAR TAGIHAN & BUKTI PELUNASAN', MR, 12, { align: 'right' });
 
   doc.setFont('helvetica', 'italic');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.6);
   setColor(doc, C.muted);
-  doc.text('RETAIL LOAN BILLING & SETTLEMENT STATEMENT', MR, 15.2, { align: 'right' });
+  doc.text('RETAIL LOAN BILLING & SETTLEMENT STATEMENT', MR, 15.8, { align: 'right' });
 
-  // Status Badge Pill (Clean, without broken unicode)
-  const badgeW = isPaid ? 42 : 50;
+  // Status Badge Pill
+  const isZeroBalance = isPaid && remainingBalance === 0;
+  const isPartial = isPaid && remainingBalance > 0;
+
+  const badgeW = isZeroBalance ? 44 : isPartial ? 52 : 54;
   const badgeH = 6.2;
   const badgeX = MR - badgeW;
-  const badgeY = 19;
+  const badgeY = 19.5;
 
-  if (isPaid) {
+  if (isZeroBalance) {
     setFill(doc, C.greenBg);
     setDraw(doc, C.greenBorder);
+  } else if (isPartial) {
+    setFill(doc, [236, 253, 245]); // emerald-50
+    setDraw(doc, [110, 231, 183]); // emerald-300
   } else {
     setFill(doc, C.amberBg);
     setDraw(doc, C.amberBorder);
@@ -178,20 +199,30 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   doc.setLineWidth(0.35);
   rRect(doc, badgeX, badgeY, badgeW, badgeH, 1.2, 'FD');
 
-  setColor(doc, isPaid ? C.greenDark : C.amberDark);
+  if (isZeroBalance) {
+    setColor(doc, C.greenDark);
+  } else if (isPartial) {
+    setColor(doc, [4, 120, 87]); // emerald-700
+  } else {
+    setColor(doc, C.amberDark);
+  }
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.8);
-  const badgeText = isPaid ? 'STATUS: LUNAS / PAID' : 'STATUS: MENUNGGU PEMBAYARAN';
+  doc.setFontSize(7.0);
+  const badgeText = isZeroBalance
+    ? 'STATUS: LUNAS / PAID'
+    : isPartial
+    ? 'STATUS: ANGSURAN DITERIMA'
+    : 'STATUS: MENUNGGU PEMBAYARAN';
   doc.text(badgeText, badgeX + badgeW / 2, badgeY + 4.3, { align: 'center' });
 
   // Horizontal separating line
   setDraw(doc, C.border);
   doc.setLineWidth(0.3);
-  doc.line(ML, 32, MR, 32);
+  doc.line(ML, 33, MR, 33);
 
   // ── 3. METADATA CARDS (2 SIDE-BY-SIDE CARDS) ───────────────
-  const cardY = 35;
-  const cardH = 35;
+  const cardY = 36.5;
+  const cardH = 37.5;
   const colCardW = (IW - 6) / 2; // 88mm each, with 6mm gap
   const card1X = ML;
   const card2X = ML + colCardW + 6;
@@ -204,27 +235,27 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
 
   // Header band Card 1
   setFill(doc, [241, 245, 249]);
-  doc.rect(card1X, cardY, colCardW, 6.5, 'F');
+  drawTopRoundedRect(doc, card1X, cardY, colCardW, 7, 1.5, 'F');
   setDraw(doc, C.border);
-  doc.line(card1X, cardY + 6.5, card1X + colCardW, cardY + 6.5);
+  doc.line(card1X, cardY + 7, card1X + colCardW, cardY + 7);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
+  doc.setFontSize(6.8);
   setColor(doc, C.bniTeal);
-  doc.text('DATA NASABAH & FASILITAS KREDIT', card1X + 3.5, cardY + 4.5);
+  doc.text('DATA NASABAH & FASILITAS KREDIT', card1X + 4, cardY + 4.8);
 
   // Card 1 rows
-  const c1lx = card1X + 3.5;
-  const c1vx = card1X + 34;
-  let rY = cardY + 11.2;
-  const rowGap = 5.2;
+  const c1lx = card1X + 4;
+  const c1vx = card1X + 35;
+  let rY = cardY + 12;
+  const rowGap = 5.4;
 
-  drawCardRow(doc, 'Nama Debitur', data.debtor.name, c1lx, c1vx, rY); rY += rowGap;
-  drawCardRow(doc, 'No. Kontrak / Rekening', data.debtor.contractNo, c1lx, c1vx, rY, C.dark, true); rY += rowGap;
-  drawCardRow(doc, 'Produk Pembiayaan', data.debtor.product, c1lx, c1vx, rY); rY += rowGap;
-  drawCardRow(doc, 'Kantor Cabang', data.debtor.branch, c1lx, c1vx, rY); rY += rowGap;
+  drawCardRow(doc, 'Nama Debitur', data.debtor.name, c1lx, c1vx, rY, C.dark, true, 6.8); rY += rowGap;
+  drawCardRow(doc, 'No. Kontrak / Rekening', data.debtor.contractNo, c1lx, c1vx, rY, C.dark, true, 6.8); rY += rowGap;
+  drawCardRow(doc, 'Produk Pembiayaan', data.debtor.product, c1lx, c1vx, rY, C.dark, false, 6.8); rY += rowGap;
+  drawCardRow(doc, 'Kantor Cabang', data.debtor.branch, c1lx, c1vx, rY, C.dark, false, 6.8); rY += rowGap;
   const tenorStr = data.debtor.loanTenor ? ` (${data.debtor.loanTenor})` : '';
-  drawCardRow(doc, 'Periode Angsuran', `${data.debtor.installmentNo}${tenorStr}`, c1lx, c1vx, rY);
+  drawCardRow(doc, 'Periode Angsuran', `${data.debtor.installmentNo}${tenorStr}`, c1lx, c1vx, rY, C.dark, false, 6.8);
 
   // Card 2: Identitas Lembar Billing
   setFill(doc, C.bgCard);
@@ -234,61 +265,61 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
 
   // Header band Card 2
   setFill(doc, [241, 245, 249]);
-  doc.rect(card2X, cardY, colCardW, 6.5, 'F');
+  drawTopRoundedRect(doc, card2X, cardY, colCardW, 7, 1.5, 'F');
   setDraw(doc, C.border);
-  doc.line(card2X, cardY + 6.5, card2X + colCardW, cardY + 6.5);
+  doc.line(card2X, cardY + 7, card2X + colCardW, cardY + 7);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
+  doc.setFontSize(6.8);
   setColor(doc, C.bniTeal);
-  doc.text('IDENTITAS LEMBAR BILLING & PENAGIHAN', card2X + 3.5, cardY + 4.5);
+  doc.text('IDENTITAS LEMBAR BILLING & PENAGIHAN', card2X + 4, cardY + 4.8);
 
   // Card 2 rows
-  const c2lx = card2X + 3.5;
-  const c2vx = card2X + 36;
-  rY = cardY + 11.2;
+  const c2lx = card2X + 4;
+  const c2vx = card2X + 37;
+  rY = cardY + 12;
 
-  drawCardRow(doc, 'No. Billing Statement', billingNo, c2lx, c2vx, rY, C.bniNavy, true); rY += rowGap;
-  drawCardRow(doc, 'Tanggal Terbit', data.dateTime, c2lx, c2vx, rY); rY += rowGap;
+  drawCardRow(doc, 'No. Billing Statement', billingNo, c2lx, c2vx, rY, C.bniNavy, true, 6.8); rY += rowGap;
+  drawCardRow(doc, 'Tanggal Terbit', data.dateTime, c2lx, c2vx, rY, C.dark, false, 6.8); rY += rowGap;
   const dueColor: RGB = data.debtor.dpdDays > 0 ? C.roseDark : C.dark;
-  drawCardRow(doc, 'Tanggal Jatuh Tempo', data.debtor.dueDate, c2lx, c2vx, rY, dueColor, true); rY += rowGap;
+  drawCardRow(doc, 'Tanggal Jatuh Tempo', data.debtor.dueDate, c2lx, c2vx, rY, dueColor, true, 6.8); rY += rowGap;
 
   if (data.debtor.dpdDays > 0) {
-    drawCardRow(doc, 'Status Keterlambatan', `${data.debtor.dpdDays} Hari (DPD Terlambat)`, c2lx, c2vx, rY, C.roseDark, true);
+    drawCardRow(doc, 'Status Keterlambatan', `${data.debtor.dpdDays} Hari (DPD Terlambat)`, c2lx, c2vx, rY, C.roseDark, true, 6.8);
   } else {
-    drawCardRow(doc, 'Status Keterlambatan', 'Tepat Waktu (Lancar)', c2lx, c2vx, rY, C.greenDark, true);
+    drawCardRow(doc, 'Status Keterlambatan', 'Tepat Waktu (Lancar)', c2lx, c2vx, rY, C.greenDark, true, 6.8);
   }
   rY += rowGap;
 
   const authCode = `AUTH-BNI-${data.referenceNo.replace(/[^0-9]/g, '').slice(-6) || '010320'}-OK`;
-  drawCardRow(doc, 'Kode Otorisasi BNI', authCode, c2lx, c2vx, rY, C.bniTeal, true);
+  drawCardRow(doc, 'Kode Otorisasi BNI', authCode, c2lx, c2vx, rY, C.bniTeal, true, 6.8);
 
   // ── 4. BREAKDOWN TABLE ─────────────────────────────────────
-  const tY = cardY + cardH + 6;
+  const tY = cardY + cardH + 6.5;
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.8);
+  doc.setFontSize(8.2);
   setColor(doc, C.bniNavy);
   doc.text('RINCIAN KOMPONEN TAGIHAN & PEMBAYARAN', ML, tY);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.5);
   setColor(doc, C.muted);
   doc.text('Mata Uang: IDR (Rupiah Indonesia)', MR, tY, { align: 'right' });
 
-  // Table header bar
-  const thY = tY + 2.5;
-  const thH = 6.8;
+  // Table header bar with top-rounded corners matching outer table border
+  const thY = tY + 2.8;
+  const thH = 7.2;
   setFill(doc, C.bniNavy);
-  doc.rect(ML, thY, IW, thH, 'F');
+  drawTopRoundedRect(doc, ML, thY, IW, thH, 1.2, 'F');
 
   setColor(doc, C.white);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.8);
-  doc.text('NO', ML + 4, thY + 4.6);
-  doc.text('KOMPONEN TAGIHAN', ML + 14, thY + 4.6);
-  doc.text('KETERANGAN RINCIAN', ML + 75, thY + 4.6);
-  doc.text('JUMLAH (IDR)', MR - 3, thY + 4.6, { align: 'right' });
+  doc.setFontSize(7.0);
+  doc.text('NO', ML + 4, thY + 4.9);
+  doc.text('KOMPONEN TAGIHAN', ML + 14, thY + 4.9);
+  doc.text('KETERANGAN RINCIAN', ML + 75, thY + 4.9);
+  doc.text('JUMLAH (IDR)', MR - 4, thY + 4.9, { align: 'right' });
 
   // Table row data
   const tableRows = [
@@ -327,42 +358,37 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   ];
 
   let currentY = thY + thH;
-  const rowH = 6.8;
+  const rowH = 7.2;
 
-  tableRows.forEach((row, i) => {
-    // Alternating zebra row fill
-    if (i % 2 === 1) {
-      setFill(doc, [250, 251, 253]);
-      doc.rect(ML, currentY, IW, rowH, 'F');
-    }
-
+  tableRows.forEach((row) => {
     // Number
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.8);
+    doc.setFontSize(7.0);
     setColor(doc, C.muted);
-    doc.text(row.no, ML + 4, currentY + 4.6);
+    doc.text(row.no, ML + 4, currentY + 4.8);
 
     // Title
     doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.2);
     setColor(doc, C.dark);
-    doc.text(row.title, ML + 14, currentY + 4.6);
+    doc.text(row.title, ML + 14, currentY + 4.8);
 
     // Description
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.2);
+    doc.setFontSize(6.5);
     setColor(doc, C.muted);
-    doc.text(row.desc, ML + 75, currentY + 4.6);
+    doc.text(row.desc, ML + 75, currentY + 4.8);
 
     // Amount
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.8);
+    doc.setFontSize(7.2);
     let amtColor: RGB = C.dark;
     if (row.isRed) amtColor = C.roseDark;
     if (row.isGreen) amtColor = C.greenDark;
     setColor(doc, amtColor);
 
     const amtStr = row.amount === 0 ? 'Rp 0 (Bebas Biaya)' : formatRupiah(row.amount);
-    doc.text(amtStr, MR - 3, currentY + 4.6, { align: 'right' });
+    doc.text(amtStr, MR - 4, currentY + 4.8, { align: 'right' });
 
     // Light row separator
     setDraw(doc, C.border);
@@ -372,81 +398,136 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
     currentY += rowH;
   });
 
-  // ── 5. SUB-TOTAL & SUMMARY ROWS (CLEAN TABULAR ALIGNMENT) ──
-  const sumCalcH = isPaid ? 25 : 20;
+  // ── 5. SUB-TOTAL & SUMMARY ROWS (CLEAN WHITE TABULAR ALIGNMENT) ──
+  const sumCalcH = isPaid ? 26.5 : 23.5;
   const sumCalcY = currentY;
-
-  // Background for calculation rows
-  setFill(doc, [250, 251, 253]);
-  doc.rect(ML, sumCalcY, IW, sumCalcH, 'F');
 
   // Separator above summary
   setDraw(doc, C.border);
   doc.setLineWidth(0.25);
   doc.line(ML, sumCalcY, MR, sumCalcY);
 
-  // Summary lines (labels in col 3, amounts in col 4 right-aligned)
-  const lblX = ML + 100;
-  const amtValX = MR - 4;
-  let ry = sumCalcY + 5;
+  // Left Panel: Status Rekonsiliasi Pembayaran
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.8);
+  setColor(doc, C.bniTeal);
+  doc.text('INFORMASI REKONSILIASI & STATUS', ML + 4, sumCalcY + 5.5);
 
-  const drawCalcRow = (label: string, value: string, color: RGB = C.dark, isBold = false, size = 6.8) => {
+  const statPillW = isZeroBalance ? 50 : isPartial ? 54 : 54;
+  const statPillH = 5.2;
+  const statPillX = ML + 4;
+  const statPillY = sumCalcY + 7.8;
+  if (isZeroBalance) {
+    setFill(doc, C.greenBg);
+    setDraw(doc, C.greenBorder);
+  } else if (isPartial) {
+    setFill(doc, [236, 253, 245]);
+    setDraw(doc, [110, 231, 183]);
+  } else {
+    setFill(doc, C.amberBg);
+    setDraw(doc, C.amberBorder);
+  }
+  doc.setLineWidth(0.25);
+  rRect(doc, statPillX, statPillY, statPillW, statPillH, 1, 'FD');
+
+  if (isZeroBalance) {
+    setColor(doc, C.greenDark);
+  } else if (isPartial) {
+    setColor(doc, [4, 120, 87]);
+  } else {
+    setColor(doc, C.amberDark);
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.4);
+  const leftStatText = isZeroBalance
+    ? 'STATUS: LUNAS / ZERO BALANCE'
+    : isPartial
+    ? 'STATUS: ANGSURAN DITERIMA'
+    : 'STATUS: MENUNGGU PEMBAYARAN';
+  doc.text(leftStatText, statPillX + statPillW / 2, statPillY + 3.6, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.2);
+  setColor(doc, C.muted);
+  doc.text(
+    isPaid
+      ? (isZeroBalance
+          ? 'Kewajiban periode ini telah diverifikasi dan dibukukan resmi oleh Bank BNI.'
+          : 'Pembayaran sebagian telah diverifikasi. Sisa tagihan berjalan sesuai jadwal.')
+      : 'Mohon selesaikan pelunasan sebelum tanggal jatuh tempo.',
+    ML + 4,
+    sumCalcY + 17.5
+  );
+  doc.text('Dokumen ini sah sebagai bukti pemenuhan kewajiban fasilitas kredit.', ML + 4, sumCalcY + 21.5);
+
+  // Vertical divider between Left Notes and Right Calculations
+  setDraw(doc, C.border);
+  doc.setLineWidth(0.25);
+  doc.line(ML + 96, sumCalcY, ML + 96, sumCalcY + sumCalcH);
+
+  // Right Panel: Financial Calculations
+  const calcLblX = ML + 100;
+  const calcValX = MR - 4;
+
+  const drawCalcRow = (label: string, value: string, yPos: number, color: RGB = C.dark, isBold = false, size = 7.0) => {
     doc.setFont('helvetica', isBold ? 'bold' : 'normal');
     doc.setFontSize(size);
-    setColor(doc, C.muted);
-    doc.text(label, lblX, ry);
+    setColor(doc, isBold ? C.dark : C.muted);
+    doc.text(label, calcLblX, yPos);
 
     setColor(doc, color);
     doc.setFont('helvetica', 'bold');
-    doc.text(value, amtValX, ry, { align: 'right' });
-    ry += 4.8;
+    doc.text(value, calcValX, yPos, { align: 'right' });
   };
 
-  drawCalcRow('Subtotal Tagihan Komponen:', formatRupiah(total), C.dark);
-  drawCalcRow('Penyesuaian / Diskon Denda:', 'Rp 0', C.muted);
+  drawCalcRow('Subtotal Tagihan Komponen:', formatRupiah(totalBilled), sumCalcY + 5.2, C.dark, false, 7.0);
+  drawCalcRow('Penyesuaian / Diskon Denda:', 'Rp 0', sumCalcY + 9.8, C.muted, false, 7.0);
 
-  // Thin separator under subtotal
-  setDraw(doc, C.borderDark);
-  doc.setLineWidth(0.2);
-  doc.line(lblX, ry - 1.2, amtValX, ry - 1.2);
-  ry += 1;
+  // Clean horizontal divider line spanning cleanly from the vertical column divider to the right table edge
+  const hrY = sumCalcY + 12.2;
+  setDraw(doc, C.border);
+  doc.setLineWidth(0.25);
+  doc.line(ML + 96, hrY, MR, hrY);
 
-  drawCalcRow('TOTAL TAGIHAN (BILLED):', formatRupiah(total), C.bniNavy, true, 7.2);
+  drawCalcRow('TOTAL TAGIHAN (BILLED):', formatRupiah(totalBilled), sumCalcY + 16.8, C.bniNavy, true, 7.4);
 
   if (isPaid) {
-    drawCalcRow('Total Pembayaran Diterima:', formatRupiah(data.totalAmount), C.greenDark, true, 7);
+    drawCalcRow('Total Pembayaran Diterima:', formatRupiah(totalPaid), sumCalcY + 21.6, C.greenDark, true, 7.2);
   }
 
-  // ── FULL-WIDTH HIGHLIGHT BANNER (TABLE CONCLUSION) ─────────
+  // ── FULL-WIDTH CONCLUSION ROW (CLEAN WHITE) ─────────────────
   const highlightBannerY = sumCalcY + sumCalcH;
-  const highlightBannerH = 7.8;
+  const highlightBannerH = 8.6;
 
-  if (isPaid) {
-    setFill(doc, C.greenBg);
-    setDraw(doc, C.greenBorder);
-    doc.setLineWidth(0.3);
-    doc.rect(ML, highlightBannerY, IW, highlightBannerH, 'FD');
+  // Separator line above conclusion row
+  setDraw(doc, C.border);
+  doc.setLineWidth(0.25);
+  doc.line(ML, highlightBannerY, MR, highlightBannerY);
 
+  if (isZeroBalance) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.2);
+    doc.setFontSize(7.6);
     setColor(doc, C.greenDark);
-    doc.text('STATUS KEWAJIBAN: LUNAS / ZERO BALANCE', ML + 4, highlightBannerY + 5.1);
+    doc.text('STATUS KEWAJIBAN: LUNAS / ZERO BALANCE', ML + 4, highlightBannerY + 5.8);
 
-    doc.setFontSize(8.2);
-    doc.text('Rp 0 - LUNAS', amtValX, highlightBannerY + 5.1, { align: 'right' });
-  } else {
-    setFill(doc, [255, 247, 237]); // amber-50 (#FFF7ED)
-    setDraw(doc, [253, 186, 116]); // amber-300 (#FDBA74)
-    doc.setLineWidth(0.3);
-    doc.rect(ML, highlightBannerY, IW, highlightBannerH, 'FD');
-
+    doc.setFontSize(8.6);
+    doc.text('Rp 0 - LUNAS', calcValX, highlightBannerY + 5.8, { align: 'right' });
+  } else if (isPartial) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.2);
+    doc.setFontSize(7.6);
     setColor(doc, [194, 65, 12]); // amber-700
-    doc.text('SISA KEWAJIBAN HARUS DIBAYAR (BALANCE DUE):', ML + 4, highlightBannerY + 5.1);
+    doc.text('SISA KEWAJIBAN HARUS DIBAYAR (BALANCE DUE):', ML + 4, highlightBannerY + 5.8);
 
-    doc.setFontSize(8.2);
-    doc.text(formatRupiah(data.totalAmount), amtValX, highlightBannerY + 5.1, { align: 'right' });
+    doc.setFontSize(8.6);
+    doc.text(formatRupiah(remainingBalance), calcValX, highlightBannerY + 5.8, { align: 'right' });
+  } else {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.6);
+    setColor(doc, [194, 65, 12]); // amber-700
+    doc.text('TOTAL KEWAJIBAN HARUS DIBAYAR:', ML + 4, highlightBannerY + 5.8);
+
+    doc.setFontSize(8.6);
+    doc.text(formatRupiah(totalBilled), calcValX, highlightBannerY + 5.8, { align: 'right' });
   }
 
   // Outer frame enclosing entire table (from header to highlight banner)
@@ -456,8 +537,8 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   rRect(doc, ML, thY, IW, tableTotalH, 1.2, 'S');
 
   // ── 5B. DEDICATED TERBILANG BAR ───────────────────────────
-  const terbilangY = highlightBannerY + highlightBannerH + 3.5;
-  const terbilangH = 7.5;
+  const terbilangY = highlightBannerY + highlightBannerH + 4.5;
+  const terbilangH = 8.2;
 
   setFill(doc, C.bgCard);
   setDraw(doc, C.border);
@@ -465,37 +546,42 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   rRect(doc, ML, terbilangY, IW, terbilangH, 1.2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.8);
   setColor(doc, C.bniTeal);
-  doc.text('TERBILANG:', ML + 4, terbilangY + 4.9);
+  doc.text('TERBILANG:', ML + 4, terbilangY + 5.3);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.6);
+  doc.setFontSize(7.2);
   setColor(doc, C.dark);
-  doc.text(`# ${formatTerbilang(total).toUpperCase()} #`, ML + 22, terbilangY + 4.9);
+  doc.text(`# ${formatTerbilang(isPaid ? totalPaid : totalBilled).toUpperCase()} #`, ML + 23, terbilangY + 5.3);
 
-  if (isPaid) {
+  if (isZeroBalance) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6);
+    doc.setFontSize(6.5);
     setColor(doc, C.greenDark);
-    doc.text('Pembayaran Terverifikasi Resmi', MR - 4, terbilangY + 4.9, { align: 'right' });
+    doc.text('Pembayaran Terverifikasi Resmi', MR - 4, terbilangY + 5.3, { align: 'right' });
+  } else if (isPartial) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    setColor(doc, [4, 120, 87]);
+    doc.text('Pembayaran Sebagian Terverifikasi', MR - 4, terbilangY + 5.3, { align: 'right' });
   } else {
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
+    doc.setFontSize(6.5);
     setColor(doc, data.debtor.dpdDays > 0 ? C.roseDark : C.muted);
-    doc.text(`Jatuh Tempo: ${data.debtor.dueDate}`, MR - 4, terbilangY + 4.9, { align: 'right' });
+    doc.text(`Jatuh Tempo: ${data.debtor.dueDate}`, MR - 4, terbilangY + 5.3, { align: 'right' });
   }
 
   // ── 6. TRANSACTION AUDIT TRAIL ─────────────────────────────
-  const auditY = terbilangY + terbilangH + 5.5;
+  const auditY = terbilangY + terbilangH + 6.0;
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.8);
+  doc.setFontSize(8.2);
   setColor(doc, C.bniNavy);
   doc.text('DATA TRANSAKSI & JURNAL PELUNASAN', ML, auditY);
 
-  const auditBoxY = auditY + 2.5;
-  const auditBoxH = 19;
+  const auditBoxY = auditY + 3.0;
+  const auditBoxH = 25;
   setFill(doc, C.white);
   setDraw(doc, C.border);
   doc.setLineWidth(0.25);
@@ -503,72 +589,72 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
 
   // 3 Equal Columns
   const colW = IW / 3;
-  const colX = (idx: number) => ML + colW * idx + 3.5;
+  const colX = (idx: number) => ML + colW * idx + 4;
 
   // Vertical column dividers
   setDraw(doc, C.border);
   doc.setLineWidth(0.2);
-  doc.line(ML + colW, auditBoxY + 2, ML + colW, auditBoxY + auditBoxH - 2);
-  doc.line(ML + colW * 2, auditBoxY + 2, ML + colW * 2, auditBoxY + auditBoxH - 2);
+  doc.line(ML + colW, auditBoxY + 2.5, ML + colW, auditBoxY + auditBoxH - 2.5);
+  doc.line(ML + colW * 2, auditBoxY + 2.5, ML + colW * 2, auditBoxY + auditBoxH - 2.5);
 
   // Column 1: Reference
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.6);
   setColor(doc, C.bniTeal);
-  doc.text('Nomor Referensi Jurnal', colX(0), auditBoxY + 4.8);
+  doc.text('Nomor Referensi Jurnal', colX(0), auditBoxY + 5.8);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.2);
+  doc.setFontSize(7.6);
   setColor(doc, C.dark);
-  doc.text(data.referenceNo, colX(0), auditBoxY + 9);
+  doc.text(data.referenceNo, colX(0), auditBoxY + 10.8);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.8);
+  doc.setFontSize(6.2);
   setColor(doc, C.muted);
-  doc.text('Waktu Transaksi:', colX(0), auditBoxY + 13);
+  doc.text('Waktu Transaksi:', colX(0), auditBoxY + 16.2);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.8);
   setColor(doc, C.body);
-  doc.text(data.dateTime, colX(0), auditBoxY + 16.5);
+  doc.text(data.dateTime, colX(0), auditBoxY + 20.2);
 
   // Column 2: Channel & Account
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.6);
   setColor(doc, C.bniTeal);
-  doc.text('Metode / Saluran Pembayaran', colX(1), auditBoxY + 4.8);
+  doc.text('Metode / Saluran Pembayaran', colX(1), auditBoxY + 5.8);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(7.4);
   setColor(doc, C.dark);
-  doc.text(data.paymentMethod, colX(1), auditBoxY + 9);
+  doc.text(data.paymentMethod, colX(1), auditBoxY + 10.8);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.8);
+  doc.setFontSize(6.2);
   setColor(doc, C.muted);
   const accountLabel = data.paymentMethod.toLowerCase().includes('qris')
     ? 'Kode Referensi Transaksi:'
     : data.paymentMethod.toLowerCase().includes('transfer')
     ? 'Rekening Tujuan Transfer:'
     : 'Nomor Virtual Account (VA):';
-  doc.text(accountLabel, colX(1), auditBoxY + 13);
+  doc.text(accountLabel, colX(1), auditBoxY + 16.2);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.2);
+  doc.setFontSize(7.6);
   setColor(doc, C.bniTeal);
-  doc.text(data.vaNumber, colX(1), auditBoxY + 16.5);
+  doc.text(data.vaNumber, colX(1), auditBoxY + 20.2);
 
-  // Column 3: Clearance Status
+  // Column 3: Clearance Status & Authorization
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.6);
   setColor(doc, C.bniTeal);
-  doc.text('Status Kliring & Otorisasi', colX(2), auditBoxY + 4.8);
+  doc.text('Status Kliring & Otorisasi', colX(2), auditBoxY + 5.8);
 
-  // Badge "TERVALIDASI REAL-TIME"
-  const valW = colW - 7;
-  const valH = 4.8;
+  // Compact, proportioned status pill aligned with Row 1 values
+  const valW = 40;
+  const valH = 5.4;
   const valX = colX(2);
-  const valY = auditBoxY + 6.2;
+  const valY = auditBoxY + 7.6;
   setFill(doc, C.greenBg);
   setDraw(doc, C.greenBorder);
   doc.setLineWidth(0.25);
@@ -576,28 +662,28 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
 
   setColor(doc, C.greenDark);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
-  doc.text('TERVALIDASI REAL-TIME', valX + valW / 2, valY + 3.4, { align: 'center' });
+  doc.setFontSize(6.5);
+  doc.text('TERVALIDASI REAL-TIME', valX + valW / 2, valY + 3.8, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.8);
+  doc.setFontSize(6.2);
   setColor(doc, C.muted);
-  doc.text('Kode Otorisasi BNI:', colX(2), auditBoxY + 13);
+  doc.text('Kode Otorisasi BNI:', colX(2), auditBoxY + 16.2);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.6);
+  doc.setFontSize(7.2);
   setColor(doc, C.dark);
-  doc.text(authCode, colX(2), auditBoxY + 16.5);
+  doc.text(authCode, colX(2), auditBoxY + 20.2);
 
   // ── 7. OFFICIAL SECURITY STAMP & QR VERIFICATION ───────────
-  const secY = auditBoxY + auditBoxH + 4.5;
-  const secH = 22;
+  const secY = auditBoxY + auditBoxH + 5.0;
+  const secH = 24.5;
 
   // Split into Left (Official Seal) and Right (QR Verification)
-  const sealW = (IW - 5) / 2; // 88.5mm
+  const sealW = (IW - 6) / 2; // 88mm
   const qrBoxW = sealW;
   const sealX = ML;
-  const qrCardX = ML + sealW + 5;
+  const qrCardX = ML + sealW + 6;
 
   // 7A. Official Digital Seal (Left Box)
   setFill(doc, C.bgCard);
@@ -611,35 +697,36 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   rRect(doc, sealX + 1.2, secY + 1.2, sealW - 2.4, secH - 2.4, 1, 'S');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.8);
   setColor(doc, C.bniNavy);
-  doc.text('PT BANK NEGARA INDONESIA (PERSERO) TBK', sealX + sealW / 2, secY + 5, { align: 'center' });
+  doc.text('PT BANK NEGARA INDONESIA (PERSERO) TBK', sealX + sealW / 2, secY + 5.4, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.5);
+  doc.setFontSize(6.0);
   setColor(doc, C.body);
-  doc.text('DIVISI RETAIL COLLECTION & RECOVERY', sealX + sealW / 2, secY + 8.2, { align: 'center' });
+  doc.text('DIVISI RETAIL COLLECTION & RECOVERY', sealX + sealW / 2, secY + 8.8, { align: 'center' });
 
   // Seal Banner
   const bannerW = sealW - 14;
-  const bannerH = 4;
+  const bannerH = 4.4;
   const bannerX = sealX + 7;
-  const bannerY = secY + 9.5;
+  const bannerY = secY + 10.2;
   setFill(doc, C.bniOrange);
   doc.rect(bannerX, bannerY, bannerW, bannerH, 'F');
 
   setColor(doc, C.white);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.6);
   const sealTitle = isPaid ? 'TERVALIDASI ELEKTRONIK - SAH' : 'BILLING RESMI TERBIT';
-  doc.text(sealTitle, bannerX + bannerW / 2, bannerY + 2.8, { align: 'center' });
+  doc.text(sealTitle, bannerX + bannerW / 2, bannerY + 3.1, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.2);
+  doc.setFontSize(6.0);
   setColor(doc, C.muted);
   const cleanRef = data.referenceNo.replace(/[^0-9]/g, '').slice(-8) || '01032001';
-  doc.text(`SEAL-ID: BNI-${cleanRef}`, sealX + sealW / 2, secY + 16, { align: 'center' });
-  doc.text('Sah tanpa tanda tangan basah (UU ITE No. 11/2008)', sealX + sealW / 2, secY + 19.2, { align: 'center' });
+  doc.text(`SEAL-ID: BNI-${cleanRef}`, sealX + sealW / 2, secY + 18.2, { align: 'center' });
+  doc.setFontSize(5.8);
+  doc.text('Sah tanpa tanda tangan basah (UU ITE No. 11/2008)', sealX + sealW / 2, secY + 21.6, { align: 'center' });
 
   // 7B. QR Code Verification Card (Right Box)
   setFill(doc, C.bgCard);
@@ -647,9 +734,9 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   doc.setLineWidth(0.25);
   rRect(doc, qrCardX, secY, qrBoxW, secH, 1.5, 'FD');
 
-  const qrSz = 16.5;
-  const qrX = qrCardX + 3;
-  const qrY = secY + 2.8;
+  const qrSz = 18;
+  const qrX = qrCardX + 3.5;
+  const qrY = secY + 3.2;
 
   if (qrDataUrl) {
     try {
@@ -662,43 +749,43 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
   }
 
   // QR details text next to QR
-  const qrTextX = qrX + qrSz + 3.5;
+  const qrTextX = qrX + qrSz + 4;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
+  doc.setFontSize(7.0);
   setColor(doc, C.bniNavy);
-  doc.text('VERIFIKASI KEASLIAN DOKUMEN', qrTextX, secY + 5);
+  doc.text('VERIFIKASI KEASLIAN DOKUMEN', qrTextX, secY + 5.6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.2);
+  setColor(doc, C.body);
+  doc.text('Pindai QR code untuk memverifikasi', qrTextX, secY + 9.5);
+  doc.text('keabsahan dokumen secara langsung:', qrTextX, secY + 13.0);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.6);
+  setColor(doc, C.bniTeal);
+  doc.text(`verify.bni.co.id/statement/${cleanRef}`, qrTextX, secY + 17.2);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(5.6);
-  setColor(doc, C.body);
-  doc.text('Pindai QR code untuk memverifikasi', qrTextX, secY + 8.5);
-  doc.text('keabsahan dokumen secara langsung:', qrTextX, secY + 11.5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(5.8);
-  setColor(doc, C.bniTeal);
-  doc.text(`verify.bni.co.id/statement/${cleanRef}`, qrTextX, secY + 15.5);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5);
   setColor(doc, C.lightMuted);
-  doc.text(`SHA256: ${cleanRef}-BNICOLLECT`, qrTextX, secY + 19);
+  doc.text(`SHA256: ${cleanRef}-BNICOLLECT`, qrTextX, secY + 21.2);
 
   // ── 8. LEGAL DISCLAIMER & IMPORTANT NOTES ──────────────────
-  const noteY = secY + secH + 4;
-  const noteH = 17;
+  const noteY = secY + secH + 5.0;
+  const noteH = 24;
   setFill(doc, C.bgAlt);
   setDraw(doc, C.border);
   doc.setLineWidth(0.25);
   rRect(doc, ML, noteY, IW, noteH, 1.2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.8);
   setColor(doc, C.bniNavy);
-  doc.text('CATATAN PENTING & KETENTUAN HUKUM LEMBAR BILLING RESMI:', ML + 3.5, noteY + 4);
+  doc.text('CATATAN PENTING & KETENTUAN HUKUM LEMBAR BILLING RESMI:', ML + 4, noteY + 4.8);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.4);
+  doc.setFontSize(6.0);
   setColor(doc, C.body);
   const notes = [
     '1. Lembar ini merupakan bukti penagihan dan rekonsiliasi resmi yang diterbitkan secara terkomputerisasi oleh Bank BNI.',
@@ -707,40 +794,40 @@ export async function generatePaymentReceiptPdf(data: BillingReceiptData): Promi
     '4. Bantuan & konfirmasi resmi: BNI Call 1500046 (24 Jam) atau kunjungi Kantor Cabang BNI pengelola kredit Anda.',
   ];
   notes.forEach((line, i) => {
-    doc.text(line, ML + 3.5, noteY + 7.2 + i * 2.9);
+    doc.text(line, ML + 4, noteY + 8.6 + i * 3.8);
   });
 
   // ── 9. REGULATORY FOOTER ───────────────────────────────────
-  const fY = 277;
+  const fY = 278;
   setDraw(doc, C.borderDark);
   doc.setLineWidth(0.25);
   doc.line(ML, fY, MR, fY);
 
   // Left decorative BNI orange bar
   setFill(doc, C.bniOrange);
-  doc.rect(ML, fY + 1.2, 22, 1.2, 'F');
+  doc.rect(ML, fY + 1.2, 24, 1.2, 'F');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.8);
   setColor(doc, C.bniNavy);
   doc.text('PT Bank Negara Indonesia (Persero) Tbk.', ML, fY + 5.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.4);
+  doc.setFontSize(5.8);
   setColor(doc, C.muted);
   doc.text(
     'Berizin & diawasi oleh Otoritas Jasa Keuangan (OJK)  |  Peserta penjaminan Lembaga Penjamin Simpanan (LPS)',
     ML,
-    fY + 8.8
+    fY + 9.0
   );
 
   doc.text(
     `Dicetak oleh: BNI Retail Collection System  |  Halaman 1 dari 1  |  Waktu Cetak: ${data.dateTime}`,
     ML,
-    fY + 12
+    fY + 12.5
   );
 
-  doc.text('Dokumen Rahasia Nasabah - Tidak untuk disebarluaskan.', MR, fY + 12, { align: 'right' });
+  doc.text('Dokumen Rahasia Nasabah - Tidak untuk disebarluaskan.', MR, fY + 12.5, { align: 'right' });
 
   // ── 10. SAVE PDF ───────────────────────────────────────────
   const filename = isPaid

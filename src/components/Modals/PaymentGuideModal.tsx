@@ -36,10 +36,10 @@ export const PaymentGuideModal: React.FC<PaymentGuideModalProps> = ({
         ? t.instructions.bniMobileTransfer
         : t.instructions.bniMobileVa
       : activeTab === 'bni_atm'
-      ? t.instructions.atm
-      : activeTab === 'other_banks'
-      ? t.instructions.otherBanks
-      : t.instructions.qrisEwallet;
+        ? t.instructions.atm
+        : activeTab === 'other_banks'
+          ? t.instructions.otherBanks
+          : t.instructions.qrisEwallet;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -51,15 +51,15 @@ export const PaymentGuideModal: React.FC<PaymentGuideModalProps> = ({
               {channel === 'qris'
                 ? t.guideModal.titleQris
                 : channel === 'transfer'
-                ? t.guideModal.titleTransfer
-                : t.guideModal.titleVa}
+                  ? t.guideModal.titleTransfer
+                  : t.guideModal.titleVa}
             </h3>
             <p className="text-xs text-slate-500">
               {channel === 'qris'
                 ? `${t.guideModal.qrisRefLabel}: ${vaNumber}`
                 : channel === 'transfer'
-                ? `${t.guideModal.transferRefLabel}: ${vaNumber}`
-                : `${t.guideModal.vaRefLabel}: ${vaNumber}`}
+                  ? `${t.guideModal.transferRefLabel}: ${vaNumber}`
+                  : `${t.guideModal.vaRefLabel}: ${vaNumber}`}
             </p>
           </div>
           <button
@@ -80,11 +80,10 @@ export const PaymentGuideModal: React.FC<PaymentGuideModalProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-colors whitespace-nowrap cursor-pointer ${
-                  isActive
-                    ? 'bg-white text-[#005E7A] border-t-2 border-t-[#F15A24] border-x border-slate-200 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-colors whitespace-nowrap cursor-pointer ${isActive
+                  ? 'bg-white text-[#005E7A] border-t-2 border-t-[#F15A24] border-x border-slate-200 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
@@ -96,7 +95,7 @@ export const PaymentGuideModal: React.FC<PaymentGuideModalProps> = ({
         {/* Steps Content */}
         <div className="p-5 overflow-y-auto space-y-3.5">
           <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900">
-            Pastikan nama penerima tertera <strong>BNI REC - ANDI PRATAMA</strong> sebelum mengonfirmasi pembayaran.
+            Pastikan nama penerima tertera <strong>BNI REC - JANUANTARA</strong> sebelum mengonfirmasi pembayaran.
           </div>
 
           <ol className="space-y-3 text-xs">

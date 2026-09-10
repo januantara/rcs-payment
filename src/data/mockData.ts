@@ -1,7 +1,7 @@
 import { DebtorInfo, BillBreakdown, BankInfo } from '../types';
 
 export const mockDebtor: DebtorInfo = {
-  name: 'Andi Pratama',
+  name: 'Januantara',
   contractNo: 'CN123456789',
   product: 'Kredit Pemilikan Rumah (KPR)',
   branch: 'BNI KC Jakarta',
@@ -58,7 +58,7 @@ export const paymentGuideSteps: Record<string, string[]> = {
     'Buka aplikasi Wondr by BNI atau BNI Mobile Banking dan masukkan MPIN Anda.',
     'Pilih menu "Transfer", kemudian pilih "Virtual Account Billing".',
     'Pilih tab "Input Baru", lalu masukkan nomor Virtual Account: 9888 1234 5678 9012.',
-    'Konfirmasi rincian pembayaran (Nama: Andi Pratama, Total Tagihan).',
+    'Konfirmasi rincian pembayaran (Nama: Januantara, Total Tagihan).',
     'Masukkan Password Transaksi Anda dan simpan bukti transaksi.',
   ],
   bni_atm: [
@@ -75,7 +75,7 @@ export const paymentGuideSteps: Record<string, string[]> = {
     'Pilih Bank Tujuan: Bank Negara Indonesia (BNI) / Kode Bank 009.',
     'Masukkan nomor rekening tujuan.',
     'Masukkan nominal pembayaran yang tepat sesuai tagihan.',
-    'Konfirmasi nama penerima "BNI REC - ANDI PRATAMA" dan selesaikan transaksi.',
+    'Konfirmasi nama penerima "BNI REC - JANUANTARA" dan selesaikan transaksi.',
   ],
   qris: [
     'Buka aplikasi mobile banking atau e-wallet pilihan Anda (Wondr by BNI, BCA Mobile, Livin by Mandiri, GoPay, OVO, Dana).',

@@ -82,7 +82,7 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
   useEffect(() => {
     // Generate real, high-resolution QR code
     const rawVa = vaNumber.replace(/\s+/g, '');
-    const qrisPayload = `00020101021226600014ID.LINKAJA.WWW011893600998${rawVa}0215ID10200238194720303UME51440014ID.CO.BNI.WWW0215${rawVa}520458125303360540${amount}.005802ID5919BNI REC - ANDI PRATAMA6007JAKARTA62190115${rawVa}6304`;
+    const qrisPayload = `00020101021226600014ID.LINKAJA.WWW011893600998${rawVa}0215ID10200238194720303UME51440014ID.CO.BNI.WWW0215${rawVa}520458125303360540${amount}.005802ID5919BNI REC - JANUANTARA6007JAKARTA62190115${rawVa}6304`;
     QRCode.toDataURL(qrisPayload, {
       width: 320,
       margin: 1,
@@ -127,15 +127,15 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
           {channel === 'qris'
             ? t.va.qrisTitle
             : channel === 'transfer'
-            ? t.va.transferTitle
-            : t.va.vaTitle}
+              ? t.va.transferTitle
+              : t.va.vaTitle}
         </h1>
         <p className="mt-0.5 text-xs text-slate-500 font-medium">
           {channel === 'qris'
             ? t.va.qrisSubtitle
             : channel === 'transfer'
-            ? t.va.transferSubtitle
-            : t.va.vaSubtitle}
+              ? t.va.transferSubtitle
+              : t.va.vaSubtitle}
         </p>
       </div>
 
@@ -156,7 +156,7 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-black text-[#003853] tracking-tight">
-                  BNI REC - ANDI PRATAMA
+                  BNI REC - JANUANTARA
                 </h2>
               </div>
 
@@ -191,11 +191,10 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                 type="button"
                 onClick={handleDownloadQr}
                 disabled={isDownloading || !qrCodeUrl}
-                className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                  downloaded
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                }`}
+                className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-2xs ${downloaded
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
               >
                 {downloaded ? (
                   <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -246,11 +245,10 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
               <button
                 type="button"
                 onClick={handleCopy}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                  copied
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50/60'
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-2xs ${copied
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                  : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50/60'
+                  }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? t.va.copied : t.va.copy}</span>
@@ -266,7 +264,7 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                 {t.va.beneficiaryLabel}
               </div>
               <div className="text-sm sm:text-base font-black text-[#003853] tracking-tight">
-                BNI REC - ANDI PRATAMA
+                BNI REC - JANUANTARA
               </div>
               <p className="text-[10px] text-slate-400">
                 {t.va.beneficiaryNotice}
@@ -309,11 +307,10 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                 <button
                   type="button"
                   onClick={handleCopyAmount}
-                  className={`text-[11px] font-bold px-2.5 py-1 rounded-md border transition-all cursor-pointer ${
-                    copiedAmount
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
+                  className={`text-[11px] font-bold px-2.5 py-1 rounded-md border transition-all cursor-pointer ${copiedAmount
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
                 >
                   {copiedAmount ? t.va.copied : t.va.copyAmount}
                 </button>
@@ -360,11 +357,10 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                   </span>
                   <button
                     onClick={handleCopy}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all cursor-pointer ${
-                      copied
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                        : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50/50'
-                    }`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all cursor-pointer ${copied
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                      : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50/50'
+                      }`}
                   >
                     {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     <span>{copied ? t.va.copied : t.va.copy}</span>
@@ -408,8 +404,8 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
             {channel === 'qris'
               ? t.va.qrisGuideTitle
               : channel === 'transfer'
-              ? t.va.transferGuideTitle
-              : t.va.vaGuideTitle}
+                ? t.va.transferGuideTitle
+                : t.va.vaGuideTitle}
           </h2>
           <span className="text-[10px] text-slate-400 font-medium">{t.va.toggleHint}</span>
         </div>
@@ -437,9 +433,8 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      activeSection === 'qris_ewallet' ? 'rotate-180 text-[#005E7A]' : ''
-                    }`}
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${activeSection === 'qris_ewallet' ? 'rotate-180 text-[#005E7A]' : ''
+                      }`}
                   />
                 </button>
 
@@ -476,9 +471,8 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      activeSection === 'qris_mbanking' ? 'rotate-180 text-[#005E7A]' : ''
-                    }`}
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${activeSection === 'qris_mbanking' ? 'rotate-180 text-[#005E7A]' : ''
+                      }`}
                   />
                 </button>
 
@@ -520,9 +514,8 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      activeSection === 'bni' ? 'rotate-180 text-[#005E7A]' : ''
-                    }`}
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${activeSection === 'bni' ? 'rotate-180 text-[#005E7A]' : ''
+                      }`}
                   />
                 </button>
 
@@ -565,9 +558,8 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      activeSection === 'other_banks' ? 'rotate-180 text-[#005E7A]' : ''
-                    }`}
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${activeSection === 'other_banks' ? 'rotate-180 text-[#005E7A]' : ''
+                      }`}
                   />
                 </button>
 
@@ -611,9 +603,8 @@ export const VirtualAccountScreen: React.FC<VirtualAccountScreenProps> = ({
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      activeSection === 'atm' ? 'rotate-180 text-[#005E7A]' : ''
-                    }`}
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${activeSection === 'atm' ? 'rotate-180 text-[#005E7A]' : ''
+                      }`}
                   />
                 </button>
 

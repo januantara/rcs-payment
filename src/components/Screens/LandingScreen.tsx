@@ -284,10 +284,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             icon={<Building2 className="w-5 h-5" />}
             name={t.landing.vaName}
             description={t.landing.vaDesc}
-            badge={{
-              text: t.landing.badgePopular || 'Paling Populer',
-              variant: 'orange',
-            }}
             supportingChips={
               <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-medium pl-1">Bank:</span>
