@@ -127,7 +127,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
     <div className="w-full animate-in fade-in duration-300">
 
       {/* ── Hero Section ── */}
-      <div className="relative w-full bg-gradient-to-br from-[#cce9f9] via-[#dff1fc] to-[#f0f8ff] border-b border-sky-100/80 px-4 sm:px-6 md:px-8 pt-8 sm:pt-10 md:pt-12 pb-[340px] md:pb-36 mb-60 md:mb-48">
+      <div className="relative w-full bg-gradient-to-br from-[#cce9f9] via-[#dff1fc] to-[#f0f8ff] border-b border-sky-100/80 px-4 sm:px-6 md:px-8 pt-8 sm:pt-10 md:pt-12 pb-[340px] md:pb-36 mb-34 md:mb-48">
 
         {/* Background photo — full width */}
         <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none">
